@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-jimengai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "n8n custom node for Jimeng AI image and video generation",
   "keywords": [
     "n8n-community-node-package",
@@ -44,10 +44,10 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/jimengCredentialsApi.credentials.js"
+      "dist/credentials/JimengCredentialsApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/JimengAI/JimengAI.node.js"
+      "dist/nodes/JimengAi/JimengAi.node.js"
     ]
   },
   "devDependencies": {
