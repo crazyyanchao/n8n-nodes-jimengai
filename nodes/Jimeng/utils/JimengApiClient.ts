@@ -879,6 +879,27 @@ export class JimengApiClient {
 		}
 	}
 
+	async getTextToVideo720PResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_t2v_v30',
+				task_id: taskId,
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get Text to Video 720P result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Text to Video 720P result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Text to Video 720P result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
 	async getVideoTaskResult(taskId: string): Promise<VideoResponse> {
 		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
 			req_key: 'jimeng_t2v_v30',

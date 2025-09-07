@@ -86,19 +86,19 @@
 ## 已实现的API接口
 
 ### 📸 图片生成接口（7个）
-| 接口名称 | 文件路径 | 模型版本 | 功能描述 |
-|---------|---------|---------|---------|
-| 文生图2.1 | `TextToImageOperate.ts` | jimeng-2.1 | 根据文本描述生成高质量图像（同步） |
-| 文生图3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | 使用3.0模型进行文本到图像生成（异步） |
-| 文生图3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | 使用3.1模型进行文本到图像生成（异步） |
-| 图生图3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | 基于现有图像和文本提示生成新图像（异步） |
-| 文生图3.0结果 | `TextToImage30ResultOperate.ts` | - | 查询文生图3.0任务结果 |
-| 文生图3.1结果 | `TextToImage31ResultOperate.ts` | - | 查询文生图3.1任务结果 |
-| 图生图3.0结果 | `ImageToImage30ResultOperate.ts` | - | 查询图生图3.0任务结果 |
+| 接口名称 | 文件路径 | 模型版本 | 功能描述 | 测试 |
+|---------|---------|---------|---------|---------|
+| 文生图2.1 | `TextToImageOperate.ts` | jimeng-2.1 | 根据文本描述生成高质量图像（同步） | 成功 |
+| 文生图3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | 使用3.0模型进行文本到图像生成（异步） | 成功 |
+| 文生图3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | 使用3.1模型进行文本到图像生成（异步） | 成功 |
+| 图生图3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | 基于现有图像和文本提示生成新图像（异步） | 成功 |
+| 文生图3.0结果 | `TextToImage30ResultOperate.ts` | - | 查询文生图3.0任务结果 | 失败 |
+| 文生图3.1结果 | `TextToImage31ResultOperate.ts` | - | 查询文生图3.1任务结果 | 失败 |
+| 图生图3.0结果 | `ImageToImage30ResultOperate.ts` | - | 查询图生图3.0任务结果 | 失败 |
 
 ### 🎬 视频生成接口（18个）
-| 接口名称 | 文件路径 | 模型版本 | 功能描述 |
-|---------|---------|---------|---------|
+| 接口名称 | 文件路径 | 模型版本 | 功能描述 | 测试 |
+|---------|---------|---------|---------|---------|
 | 文生视频720P | `TextToVideo720POperate.ts` | video-3.0-720p | 根据文本描述生成720P视频 |
 | 文生视频1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | 根据文本描述生成1080P视频 |
 | 图生视频720P-首帧 | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | 基于图像首帧生成720P视频 |
