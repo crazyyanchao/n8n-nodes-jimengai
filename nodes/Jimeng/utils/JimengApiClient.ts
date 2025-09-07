@@ -352,30 +352,11 @@ export class JimengApiClient {
 		});
 
 		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
-			throw new Error(`Task submission failed: ${submitResponse.message}`);
+			throw new Error(`Text to Image 3.0 task submission failed: ${submitResponse.message}`);
 		}
 
-		// Build query parameters
-		const reqJson: any = {
-			return_url: request.return_url,
-		};
-
-		if (request.logo_info) {
-			reqJson.logo_info = request.logo_info;
-		}
-
-		if (request.aigc_meta) {
-			reqJson.aigc_meta = request.aigc_meta;
-		}
-
-		// Query task result
-		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
-			req_key: 'jimeng_t2i_v30',
-			task_id: submitResponse.data.task_id,
-			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
-		});
-
-		return queryResponse;
+		// Return the submission response with task_id
+		return submitResponse;
 	}
 
 	async textToImage31(request: TextToImage31Request): Promise<TextToImage31Response> {
@@ -390,30 +371,11 @@ export class JimengApiClient {
 		});
 
 		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
-			throw new Error(`Task submission failed: ${submitResponse.message}`);
+			throw new Error(`Text to Image 3.1 task submission failed: ${submitResponse.message}`);
 		}
 
-		// Build query parameters
-		const reqJson: any = {
-			return_url: request.return_url,
-		};
-
-		if (request.logo_info) {
-			reqJson.logo_info = request.logo_info;
-		}
-
-		if (request.aigc_meta) {
-			reqJson.aigc_meta = request.aigc_meta;
-		}
-
-		// Query task result
-		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
-			req_key: 'jimeng_t2i_v31',
-			task_id: submitResponse.data.task_id,
-			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
-		});
-
-		return queryResponse;
+		// Return the submission response with task_id
+		return submitResponse;
 	}
 
 	async getTextToImage30Result(taskId: string, options?: {
@@ -521,27 +483,8 @@ export class JimengApiClient {
 			throw new Error(`Image-to-Image 3.0 task submission failed: ${submitResponse.message}`);
 		}
 
-		// Build query parameters
-		const reqJson: any = {
-			return_url: request.return_url,
-		};
-
-		if (request.logo_info) {
-			reqJson.logo_info = request.logo_info;
-		}
-
-		if (request.aigc_meta) {
-			reqJson.aigc_meta = request.aigc_meta;
-		}
-
-		// Query task result
-		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
-			req_key: 'jimeng_i2i_v30',
-			task_id: submitResponse.data.task_id,
-			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
-		});
-
-		return queryResponse;
+		// Return the submission response with task_id
+		return submitResponse;
 	}
 
 	async getImageToImage30Result(taskId: string, options?: {
@@ -603,13 +546,8 @@ export class JimengApiClient {
 			throw new Error(`TextToVideo 720P task submission failed: ${submitResponse.message}`);
 		}
 
-		// Query task result
-		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
-			req_key: 'jimeng_t2v_v30',
-			task_id: submitResponse.data.task_id,
-		});
-
-		return queryResponse;
+		// Return the submission response with task_id
+		return submitResponse;
 	}
 
 	async imageToVideo720PFirstFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
@@ -721,16 +659,11 @@ export class JimengApiClient {
 		});
 
 		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
-			throw new Error(`Task submission failed: ${submitResponse.message}`);
+			throw new Error(`TextToVideo 1080P task submission failed: ${submitResponse.message}`);
 		}
 
-		// Query task result
-		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
-			req_key: 'jimeng_t2v_v30_1080p',
-			task_id: submitResponse.data.task_id,
-		});
-
-		return queryResponse;
+		// Return the submission response with task_id
+		return submitResponse;
 	}
 
 	async imageToVideo1080PFirstFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
@@ -895,6 +828,27 @@ export class JimengApiClient {
 			}
 			if (error.message.includes('Task has expired')) {
 				throw new Error(`Failed to get Text to Video 720P result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async getTextToVideo1080PResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_t2v_v30_1080p',
+				task_id: taskId,
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get Text to Video 1080P result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Text to Video 1080P result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Text to Video 1080P result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
 			}
 			throw error;
 		}

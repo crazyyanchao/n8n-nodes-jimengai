@@ -27,24 +27,24 @@ const GetTextToVideo1080PResultOperate: ResourceOperations = {
 		});
 
 		try {
-			const data = await client.getVideoTaskResult(taskId);
+			const data = await client.getTextToVideo1080PResult(taskId);
 
 			// Check task status
-			if (data.Result?.Status === 'not_found') {
+			if (data.data?.status === 'not_found') {
 				throw new Error('Task not found, possible reasons: no such task or task has expired (12 hours)');
 			}
 
-			if (data.Result?.Status === 'expired') {
+			if (data.data?.status === 'expired') {
 				throw new Error('Task has expired, please try resubmitting the task request');
 			}
 
-			// VideoResponse format
+			// AsyncVideoResponse format
 			return {
-				taskId: data.Result?.TaskId || taskId,
-				status: data.Result?.Status,
-				videoUrl: data.Result?.Videos?.[0]?.VideoUrl,
-				error: data.Result?.Error?.Message,
-				requestId: data.ResponseMetadata?.RequestId,
+				taskId: data.data?.task_id || taskId,
+				status: data.data?.status,
+				videoUrl: data.data?.video_url,
+				error: data.message,
+				requestId: data.request_id,
 				// Add Text to Video 1080P specific information
 				modelType: 'Text to Video 1080P',
 				resolution: '1080P',
