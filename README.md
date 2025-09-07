@@ -85,37 +85,37 @@
 ## Implemented API Interfaces
 
 ### 📸 Image Generation Interfaces (7)
-| Interface Name | File Path | Model Version | Description |
-|---------------|-----------|---------------|-------------|
-| Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions (synchronous) |
-| Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation (asynchronous) |
-| Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation (asynchronous) |
-| Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts (asynchronous) |
-| Text-to-Image 3.0 Result | `TextToImage30ResultOperate.ts` | - | Query text-to-image 3.0 task results |
-| Text-to-Image 3.1 Result | `TextToImage31ResultOperate.ts` | - | Query text-to-image 3.1 task results |
-| Image-to-Image 3.0 Result | `ImageToImage30ResultOperate.ts` | - | Query image-to-image 3.0 task results |
+| Interface Name | File Path | Model Version | Description | Test |
+|---------------|-----------|---------------|-------------|------|
+| Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions (synchronous) | Success |
+| Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation (asynchronous) | Success |
+| Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation (asynchronous) | Success |
+| Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts (asynchronous) | Success |
+| Text-to-Image 3.0 Result | `TextToImage30ResultOperate.ts` | - | Query text-to-image 3.0 task results | Failed |
+| Text-to-Image 3.1 Result | `TextToImage31ResultOperate.ts` | - | Query text-to-image 3.1 task results | Failed |
+| Image-to-Image 3.0 Result | `ImageToImage30ResultOperate.ts` | - | Query image-to-image 3.0 task results | Failed |
 
 ### 🎬 Video Generation Interfaces (18)
-| Interface Name | File Path | Model Version | Description |
-|---------------|-----------|---------------|-------------|
-| Text-to-Video 720P | `TextToVideo720POperate.ts` | video-3.0-720p | Generate 720P videos from text descriptions |
-| Text-to-Video 1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | Generate 1080P videos from text descriptions |
-| Image-to-Video 720P-First Frame | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first frame |
-| Image-to-Video 720P-First Last Frame | `ImageToVideo720PFirstLastFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first and last frames |
-| Image-to-Video 720P-Camera Motion | `ImageToVideo720PCameraMotionOperate.ts` | video-3.0-720p | Generate 720P videos based on image and camera motion effects |
-| Image-to-Video 1080P-First Frame | `ImageToVideo1080PFirstFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first frame |
-| Image-to-Video 1080P-First Last Frame | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first and last frames |
-| Video Generation 3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | Use Pro model to generate high-quality videos |
-| Action Imitation | `ActionImitationOperate.ts` | action-imitation | Generate videos based on reference video action imitation |
-| Text-to-Video 720P Result | `TextToVideo720PResultOperate.ts` | - | Query text-to-video 720P task results |
-| Text-to-Video 1080P Result | `TextToVideo1080PResultOperate.ts` | - | Query text-to-video 1080P task results |
-| Image-to-Video 720P-First Frame Result | `ImageToVideo720PFirstFrameResultOperate.ts` | - | Query image-to-video 720P-first frame task results |
-| Image-to-Video 720P-First Last Frame Result | `ImageToVideo720PFirstLastFrameResultOperate.ts` | - | Query image-to-video 720P-first last frame task results |
-| Image-to-Video 720P-Camera Motion Result | `ImageToVideo720PCameraMotionResultOperate.ts` | - | Query image-to-video 720P-camera motion task results |
-| Image-to-Video 1080P-First Frame Result | `ImageToVideo1080PFirstFrameResultOperate.ts` | - | Query image-to-video 1080P-first frame task results |
-| Image-to-Video 1080P-First Last Frame Result | `ImageToVideo1080PFirstLastFrameResultOperate.ts` | - | Query image-to-video 1080P-first last frame task results |
-| Video Generation 3.0 Pro Result | `VideoGeneration30ProResultOperate.ts` | - | Query video generation 3.0 Pro task results |
-| Action Imitation Result | `ActionImitationResultOperate.ts` | - | Query action imitation task results |
+| Interface Name | File Path | Model Version | Description | Test |
+|---------------|-----------|---------------|-------------|------|
+| Text-to-Video 720P | `TextToVideo720POperate.ts` | video-3.0-720p | Generate 720P videos from text descriptions | Success |
+| Text-to-Video 1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | Generate 1080P videos from text descriptions | Success |
+| Image-to-Video 720P-First Frame | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first frame | Success |
+| Image-to-Video 720P-First Last Frame | `ImageToVideo720PFirstLastFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first and last frames | Success |
+| Image-to-Video 720P-Camera Motion | `ImageToVideo720PCameraMotionOperate.ts` | video-3.0-720p | Generate 720P videos based on image and camera motion effects | Success |
+| Image-to-Video 1080P-First Frame | `ImageToVideo1080PFirstFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first frame | Success |
+| Image-to-Video 1080P-First Last Frame | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first and last frames | Success |
+| Video Generation 3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | Use Pro model to generate high-quality videos | Success |
+| Action Imitation | `ActionImitationOperate.ts` | action-imitation | Generate videos based on reference video action imitation | Success |
+| Text-to-Video 720P Result | `TextToVideo720PResultOperate.ts` | - | Query text-to-video 720P task results | Success |
+| Text-to-Video 1080P Result | `TextToVideo1080PResultOperate.ts` | - | Query text-to-video 1080P task results | Success |
+| Image-to-Video 720P-First Frame Result | `ImageToVideo720PFirstFrameResultOperate.ts` | - | Query image-to-video 720P-first frame task results | Success |
+| Image-to-Video 720P-First Last Frame Result | `ImageToVideo720PFirstLastFrameResultOperate.ts` | - | Query image-to-video 720P-first last frame task results | Success |
+| Image-to-Video 720P-Camera Motion Result | `ImageToVideo720PCameraMotionResultOperate.ts` | - | Query image-to-video 720P-camera motion task results | Success |
+| Image-to-Video 1080P-First Frame Result | `ImageToVideo1080PFirstFrameResultOperate.ts` | - | Query image-to-video 1080P-first frame task results | Success |
+| Image-to-Video 1080P-First Last Frame Result | `ImageToVideo1080PFirstLastFrameResultOperate.ts` | - | Query image-to-video 1080P-first last frame task results | Success |
+| Video Generation 3.0 Pro Result | `VideoGeneration30ProResultOperate.ts` | - | Query video generation 3.0 Pro task results | Success |
+| Action Imitation Result | `ActionImitationResultOperate.ts` | - | Query action imitation task results | Success |
 
 ## Feature Overview
 
@@ -131,13 +131,13 @@
 | | Image-to-Image 3.0 Result | Query image-to-image 3.0 task results | - |
 | **Video Generation** | Text-to-Video 720P | Generate 720P videos from text descriptions | video-3.0-720p |
 | | Text-to-Video 1080P | Generate 1080P videos from text descriptions | video-3.0-1080p |
-| | Image-to-Video 720P-First Frame | Generate 720P videos based on image first frame | video-3.0-720p |
-| | Image-to-Video 720P-First Last Frame | Generate 720P videos based on image first and last frames | video-3.0-720p |
-| | Image-to-Video 720P-Camera Motion | Generate 720P videos based on image and camera motion effects | video-3.0-720p |
+| | Image-to-Video 720P-First Frame | Generate 1080P videos based on image first frame | Success | video-3.0-720p |
+| | Image-to-Video 720P-First Last Frame | Generate 1080P videos based on image first and last frames | Success | video-3.0-720p |
+| | Image-to-Video 720P-Camera Motion | Generate 720P videos based on image and camera motion effects | Success | video-3.0-720p |
 | | Image-to-Video 1080P-First Frame | Generate 1080P videos based on image first frame | video-3.0-1080p |
 | | Image-to-Video 1080P-First Last Frame | Generate 1080P videos based on image first and last frames | video-3.0-1080p |
-| | Video Generation 3.0 Pro | Use Pro model to generate high-quality videos | video-3.0-pro |
-| | Action Imitation | Generate videos based on reference video action imitation | action-imitation |
+| | Video Generation 3.0 Pro | Use Pro model to generate high-quality videos | Success | video-3.0-pro |
+| | Action Imitation | Generate videos based on reference video action imitation | Success | action-imitation |
 | **Status Query** | Various Video Result Queries | Query various video generation task status and results | - |
 
 ### ⚙️ Parameter Configuration

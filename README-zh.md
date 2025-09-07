@@ -99,24 +99,24 @@
 ### 🎬 视频生成接口（18个）
 | 接口名称 | 文件路径 | 模型版本 | 功能描述 | 测试 |
 |---------|---------|---------|---------|---------|
-| 文生视频720P | `TextToVideo720POperate.ts` | video-3.0-720p | 根据文本描述生成720P视频 |
-| 文生视频1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | 根据文本描述生成1080P视频 |
-| 图生视频720P-首帧 | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | 基于图像首帧生成720P视频 |
-| 图生视频720P-首尾帧 | `ImageToVideo720PFirstLastFrameOperate.ts` | video-3.0-720p | 基于图像首尾帧生成720P视频 |
-| 图生视频720P-运镜 | `ImageToVideo720PCameraMotionOperate.ts` | video-3.0-720p | 基于图像和运镜效果生成720P视频 |
-| 图生视频1080P-首帧 | `ImageToVideo1080PFirstFrameOperate.ts` | video-3.0-1080p | 基于图像首帧生成1080P视频 |
-| 图生视频1080P-首尾帧 | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | 基于图像首尾帧生成1080P视频 |
-| 视频生成3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | 使用Pro模型生成高质量视频 |
-| 动作模仿 | `ActionImitationOperate.ts` | action-imitation | 基于参考视频进行动作模仿生成 |
-| 文生视频720P结果 | `TextToVideo720PResultOperate.ts` | - | 查询文生视频720P任务结果 |
-| 文生视频1080P结果 | `TextToVideo1080PResultOperate.ts` | - | 查询文生视频1080P任务结果 |
-| 图生视频720P-首帧结果 | `ImageToVideo720PFirstFrameResultOperate.ts` | - | 查询图生视频720P-首帧任务结果 |
-| 图生视频720P-首尾帧结果 | `ImageToVideo720PFirstLastFrameResultOperate.ts` | - | 查询图生视频720P-首尾帧任务结果 |
-| 图生视频720P-运镜结果 | `ImageToVideo720PCameraMotionResultOperate.ts` | - | 查询图生视频720P-运镜任务结果 |
-| 图生视频1080P-首帧结果 | `ImageToVideo1080PFirstFrameResultOperate.ts` | - | 查询图生视频1080P-首帧任务结果 |
-| 图生视频1080P-首尾帧结果 | `ImageToVideo1080PFirstLastFrameResultOperate.ts` | - | 查询图生视频1080P-首尾帧任务结果 |
-| 视频生成3.0 Pro结果 | `VideoGeneration30ProResultOperate.ts` | - | 查询视频生成3.0 Pro任务结果 |
-| 动作模仿结果 | `ActionImitationResultOperate.ts` | - | 查询动作模仿任务结果 |
+| 文生视频720P | `TextToVideo720POperate.ts` | video-3.0-720p | 根据文本描述生成720P视频 | 成功 |
+| 文生视频1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | 根据文本描述生成1080P视频 | 成功 |
+| 图生视频720P-首帧 | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | 基于图像首帧生成720P视频 | 成功 |
+| 图生视频720P-首尾帧 | `ImageToVideo720PFirstLastFrameOperate.ts` | video-3.0-720p | 基于图像首尾帧生成720P视频 | 成功 |
+| 图生视频720P-运镜 | `ImageToVideo720PCameraMotionOperate.ts` | video-3.0-720p | 基于图像和运镜效果生成720P视频 | 成功 |
+| 图生视频1080P-首帧 | `ImageToVideo1080PFirstFrameOperate.ts` | video-3.0-1080p | 基于图像首帧生成1080P视频 | 成功 |
+| 图生视频1080P-首尾帧 | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | 基于图像首尾帧生成1080P视频 | 成功 |
+| 视频生成3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | 使用Pro模型生成高质量视频 | 成功 |
+| 动作模仿 | `ActionImitationOperate.ts` | action-imitation | 基于参考视频进行动作模仿生成 | 成功 |
+| 文生视频720P结果 | `TextToVideo720PResultOperate.ts` | - | 查询文生视频720P任务结果 | 成功 |
+| 文生视频1080P结果 | `TextToVideo1080PResultOperate.ts` | - | 查询文生视频1080P任务结果 | 成功 |
+| 图生视频720P-首帧结果 | `ImageToVideo720PFirstFrameResultOperate.ts` | - | 查询图生视频720P-首帧任务结果 | 成功 |
+| 图生视频720P-首尾帧结果 | `ImageToVideo720PFirstLastFrameResultOperate.ts` | - | 查询图生视频720P-首尾帧任务结果 | 成功 |
+| 图生视频720P-运镜结果 | `ImageToVideo720PCameraMotionResultOperate.ts` | - | 查询图生视频720P-运镜任务结果 | 成功 |
+| 图生视频1080P-首帧结果 | `ImageToVideo1080PFirstFrameResultOperate.ts` | - | 查询图生视频1080P-首帧任务结果 | 成功 |
+| 图生视频1080P-首尾帧结果 | `ImageToVideo1080PFirstLastFrameResultOperate.ts` | - | 查询图生视频1080P-首尾帧任务结果 | 成功 |
+| 视频生成3.0 Pro结果 | `VideoGeneration30ProResultOperate.ts` | - | 查询视频生成3.0 Pro任务结果 | 成功 |
+| 动作模仿结果 | `ActionImitationResultOperate.ts` | - | 查询动作模仿任务结果 | 成功 |
 
 
 ## 功能特性
