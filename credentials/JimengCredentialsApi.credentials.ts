@@ -49,6 +49,14 @@ export class JimengCredentialsApi implements ICredentialType {
 			baseURL: 'https://visual.volcengineapi.com',
 			url: '/',
 			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: {
+				Action: 'CVProcess',
+				Version: '2022-08-31',
+				req_key: 'test_connection',
+			},
 		},
 	};
 }

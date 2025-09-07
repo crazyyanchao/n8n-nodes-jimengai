@@ -106,7 +106,13 @@ export class JimengApiClient {
 		// Add request interceptor to include authentication
 		this.client.interceptors.request.use((config) => {
 			if (config.headers && config.data) {
+				const now = new Date();
+				const timestamp = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
+				const payloadHash = crypto.createHash('sha256').update(JSON.stringify(config.data)).digest('hex');
 				const signature = this.generateSignature(config.method?.toUpperCase() || 'POST', config.url || '', config.data);
+
+				config.headers['X-Date'] = timestamp;
+				config.headers['X-Content-Sha256'] = payloadHash;
 				config.headers['Authorization'] = signature;
 			}
 			return config;
@@ -114,25 +120,26 @@ export class JimengApiClient {
 	}
 
 	private generateSignature(method: string, url: string, body: any): string {
-		const timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-		const date = timestamp.substr(0, 8);
-		const service = 'visual';
+		const now = new Date();
+		const timestamp = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
+		const date = now.toISOString().substr(0, 10).replace(/-/g, '');
+		const service = 'cv';
 		const region = this.region;
 		const algorithm = 'HMAC-SHA256';
 
 		// Create canonical request
-		const canonicalUri = url;
+		const canonicalUri = '/';
 		const canonicalQueryString = '';
-		const canonicalHeaders = `host:visual.volcengineapi.com\nx-date:${timestamp}\n`;
-		const signedHeaders = 'host;x-date';
-		const hashedPayload = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
-		const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`;
+		const payloadHash = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
+		const canonicalHeaders = `content-type:application/json\nhost:visual.volcengineapi.com\nx-content-sha256:${payloadHash}\nx-date:${timestamp}\n`;
+		const signedHeaders = 'content-type;host;x-content-sha256;x-date';
+		const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
 
 		// Create string to sign
 		const credentialScope = `${date}/${region}/${service}/request`;
 		const stringToSign = `${algorithm}\n${timestamp}\n${credentialScope}\n${crypto.createHash('sha256').update(canonicalRequest).digest('hex')}`;
 
-		// Calculate signature
+		// Calculate signature using the same method as the official example
 		const kDate = crypto.createHmac('sha256', this.secretAccessKey).update(date).digest();
 		const kRegion = crypto.createHmac('sha256', kDate).update(region).digest();
 		const kService = crypto.createHmac('sha256', kRegion).update(service).digest();
