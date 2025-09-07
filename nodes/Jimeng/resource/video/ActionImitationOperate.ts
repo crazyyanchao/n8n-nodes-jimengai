@@ -9,92 +9,38 @@ const ActionImitationOperate: ResourceOperations = {
 	description: 'Generate video by imitating actions from reference video using Jimeng AI',
 	options: [
 		{
-			displayName: 'Prompt',
-			name: 'prompt',
-			type: 'string',
-			default: '',
-			description: 'Text description for video generation',
-			required: true,
-		},
-		{
 			displayName: 'Reference Video URL',
-			name: 'referenceVideoUrl',
+			name: 'video_url',
 			type: 'string',
 			default: '',
-			description: 'URL or path to the reference video for action imitation',
+			description: 'URL of the reference video for action imitation (must be publicly accessible)',
 			required: true,
 		},
 		{
-			displayName: 'Aspect Ratio',
-			name: 'aspect_ratio',
-			type: 'options',
-			default: '16:9',
-			options: [
-				{ name: '1:1', value: '1:1' },
-				{ name: '16:9', value: '16:9' },
-				{ name: '21:9', value: '21:9' },
-				{ name: '3:4', value: '3:4' },
-				{ name: '4:3', value: '4:3' },
-				{ name: '9:16', value: '9:16' },
-			],
-			description: 'Video aspect ratio',
-		},
-		{
-			displayName: 'Duration (Seconds)',
-			name: 'duration',
-			type: 'number',
-			default: 5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 10,
-			},
-			description: 'Video duration in seconds (1-10)',
-		},
-		{
-			displayName: 'Seed',
-			name: 'seed',
-			type: 'number',
-			default: -1,
-			description: 'Random seed for generation (-1 for random)',
-		},
-		{
-			displayName: 'Steps',
-			name: 'steps',
-			type: 'number',
-			default: 20,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 50,
-			},
-			description: 'Number of denoising steps (1-50)',
-		},
-		{
-			displayName: 'Guidance Scale',
-			name: 'guidance_scale',
-			type: 'number',
-			default: 7.5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 20,
-			},
-			description: 'Guidance scale for prompt adherence (1-20)',
+			displayName: 'Image URL',
+			name: 'image_url',
+			type: 'string',
+			default: '',
+			description: 'URL of the input image for action imitation (must be publicly accessible)',
+			required: true,
 		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
-		const prompt = this.getNodeParameter('prompt', index) as string;
-		let referenceVideoUrl = this.getNodeParameter('referenceVideoUrl', index) as string;
-		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
-		const duration = this.getNodeParameter('duration', index) as number;
-		const seed = this.getNodeParameter('seed', index) as number;
-		const steps = this.getNodeParameter('steps', index) as number;
-		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
+		let videoUrl = this.getNodeParameter('video_url', index) as string;
+		let imageUrl = this.getNodeParameter('image_url', index) as string;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
 		// Handle file upload if needed
-		const linkType = checkLinkType(referenceVideoUrl);
-		if (linkType === 'string') {
-			const result = await buildUploadFileData.call(this, referenceVideoUrl);
-			referenceVideoUrl = result.value;
+		const videoLinkType = checkLinkType(videoUrl);
+		if (videoLinkType === 'string') {
+			const result = await buildUploadFileData.call(this, videoUrl);
+			videoUrl = result.value;
+		}
+
+		const imageLinkType = checkLinkType(imageUrl);
+		if (imageLinkType === 'string') {
+			const result = await buildUploadFileData.call(this, imageUrl);
+			imageUrl = result.value;
 		}
 
 		const client = new JimengApiClient({
@@ -103,23 +49,16 @@ const ActionImitationOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.actionImitation({
-			prompt,
-			image_url: referenceVideoUrl,
-			aspect_ratio: aspectRatio,
-			duration,
-			seed: seed === -1 ? undefined : seed,
-			steps,
-			guidance_scale: guidanceScale,
-			model: 'action-imitation',
+		// Submit action imitation task
+		const submitResponse = await client.submitActionImitationTask({
+			video_url: videoUrl,
+			image_url: imageUrl,
 		});
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			taskId: submitResponse.task_id,
+			code: submitResponse.code,
+			message: submitResponse.message,
 		};
 	},
 };

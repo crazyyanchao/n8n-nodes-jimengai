@@ -2,17 +2,17 @@ import { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { ResourceOperations } from '../../../help/type/IResource';
 import { JimengApiClient } from '../../utils/JimengApiClient';
 
-const GetVideoStatusOperate: ResourceOperations = {
-	name: 'Get Video Status',
-	value: 'getVideoStatus',
-	description: 'Get the status of video generation task',
+const GetActionImitationResultOperate: ResourceOperations = {
+	name: 'Action Imitation Result',
+	value: 'getActionImitationResult',
+	description: 'Get the result of action imitation task using Jimeng AI',
 	options: [
 		{
 			displayName: 'Task ID',
 			name: 'taskId',
 			type: 'string',
 			default: '',
-			description: 'Task ID of the video generation task',
+			description: 'Task ID returned from action imitation submission',
 			required: true,
 		},
 	],
@@ -26,16 +26,19 @@ const GetVideoStatusOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.getVideoStatus(taskId);
+		const result = await client.getActionImitationResult(taskId);
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			code: result.code,
+			message: result.message,
+			requestId: result.request_id,
+			status: result.status,
+			timeElapsed: result.time_elapsed,
+			taskId: result.data?.task_id,
+			taskStatus: result.data?.status,
+			videoUrl: result.data?.video_url,
 		};
 	},
 };
 
-export default GetVideoStatusOperate;
+export default GetActionImitationResultOperate;

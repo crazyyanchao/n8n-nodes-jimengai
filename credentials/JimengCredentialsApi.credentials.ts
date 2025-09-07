@@ -1,6 +1,5 @@
 import {
 	IAuthenticateGeneric,
-	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -44,19 +43,6 @@ export class JimengCredentialsApi implements ICredentialType {
 		properties: {},
 	};
 
-	test: ICredentialTestRequest = {
-		request: {
-			baseURL: 'https://visual.volcengineapi.com',
-			url: '/',
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: {
-				Action: 'CVProcess',
-				Version: '2022-08-31',
-				req_key: 'test_connection',
-			},
-		},
-	};
+	// Remove authentication test because Volcengine API test endpoints require specific permissions
+	// Users can use the node directly, authentication will be validated during actual API calls
 }

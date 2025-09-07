@@ -13,15 +13,31 @@ const ImageToVideo1080PFirstLastFrameOperate: ResourceOperations = {
 			name: 'prompt',
 			type: 'string',
 			default: '',
-			description: 'Text description for video generation',
+			description: 'Text description for video generation (max 800 characters)',
 			required: true,
+		},
+		{
+			displayName: 'Image Input Type',
+			name: 'imageInputType',
+			type: 'options',
+			default: 'urls',
+			options: [
+				{ name: 'Image URLs', value: 'urls' },
+				{ name: 'Base64 Data', value: 'base64' },
+			],
+			description: 'Choose how to provide images',
 		},
 		{
 			displayName: 'First Frame Image URL',
 			name: 'firstFrameUrl',
 			type: 'string',
 			default: '',
-			description: 'URL or path to the first frame image',
+			description: 'URL to the first frame image',
+			displayOptions: {
+				show: {
+					imageInputType: ['urls'],
+				},
+			},
 			required: true,
 		},
 		{
@@ -29,34 +45,50 @@ const ImageToVideo1080PFirstLastFrameOperate: ResourceOperations = {
 			name: 'lastFrameUrl',
 			type: 'string',
 			default: '',
-			description: 'URL or path to the last frame image',
+			description: 'URL to the last frame image',
+			displayOptions: {
+				show: {
+					imageInputType: ['urls'],
+				},
+			},
 			required: true,
 		},
 		{
-			displayName: 'Aspect Ratio',
-			name: 'aspect_ratio',
-			type: 'options',
-			default: '16:9',
-			options: [
-				{ name: '1:1', value: '1:1' },
-				{ name: '16:9', value: '16:9' },
-				{ name: '21:9', value: '21:9' },
-				{ name: '3:4', value: '3:4' },
-				{ name: '4:3', value: '4:3' },
-				{ name: '9:16', value: '9:16' },
-			],
-			description: 'Video aspect ratio',
+			displayName: 'First Frame Base64',
+			name: 'firstFrameBase64',
+			type: 'string',
+			default: '',
+			description: 'Base64 encoded first frame image data',
+			displayOptions: {
+				show: {
+					imageInputType: ['base64'],
+				},
+			},
+			required: true,
 		},
 		{
-			displayName: 'Duration (Seconds)',
-			name: 'duration',
-			type: 'number',
-			default: 5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 10,
+			displayName: 'Last Frame Base64',
+			name: 'lastFrameBase64',
+			type: 'string',
+			default: '',
+			description: 'Base64 encoded last frame image data',
+			displayOptions: {
+				show: {
+					imageInputType: ['base64'],
+				},
 			},
-			description: 'Video duration in seconds (1-10)',
+			required: true,
+		},
+		{
+			displayName: 'Frames',
+			name: 'frames',
+			type: 'options',
+			default: 121,
+			options: [
+				{ name: '5 Seconds (121 Frames)', value: 121 },
+				{ name: '10 Seconds (241 Frames)', value: 241 },
+			],
+			description: 'Total number of frames to generate',
 		},
 		{
 			displayName: 'Seed',
@@ -65,52 +97,13 @@ const ImageToVideo1080PFirstLastFrameOperate: ResourceOperations = {
 			default: -1,
 			description: 'Random seed for generation (-1 for random)',
 		},
-		{
-			displayName: 'Steps',
-			name: 'steps',
-			type: 'number',
-			default: 20,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 50,
-			},
-			description: 'Number of denoising steps (1-50)',
-		},
-		{
-			displayName: 'Guidance Scale',
-			name: 'guidance_scale',
-			type: 'number',
-			default: 7.5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 20,
-			},
-			description: 'Guidance scale for prompt adherence (1-20)',
-		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
-		let firstFrameUrl = this.getNodeParameter('firstFrameUrl', index) as string;
-		let lastFrameUrl = this.getNodeParameter('lastFrameUrl', index) as string;
-		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
-		const duration = this.getNodeParameter('duration', index) as number;
+		const imageInputType = this.getNodeParameter('imageInputType', index) as string;
+		const frames = this.getNodeParameter('frames', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
-		const steps = this.getNodeParameter('steps', index) as number;
-		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
-
-		// Handle file upload if needed
-		const firstFrameLinkType = checkLinkType(firstFrameUrl);
-		if (firstFrameLinkType === 'string') {
-			const result = await buildUploadFileData.call(this, firstFrameUrl);
-			firstFrameUrl = result.value;
-		}
-
-		const lastFrameLinkType = checkLinkType(lastFrameUrl);
-		if (lastFrameLinkType === 'string') {
-			const result = await buildUploadFileData.call(this, lastFrameUrl);
-			lastFrameUrl = result.value;
-		}
 
 		const client = new JimengApiClient({
 			accessKeyId: credentials.accessKeyId as string,
@@ -118,24 +111,43 @@ const ImageToVideo1080PFirstLastFrameOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.imageToVideo1080PFirstLastFrame({
+		let requestData: any = {
 			prompt,
-			first_frame_url: firstFrameUrl,
-			last_frame_url: lastFrameUrl,
-			aspect_ratio: aspectRatio,
-			duration,
-			seed: seed === -1 ? undefined : seed,
-			steps,
-			guidance_scale: guidanceScale,
-			model: 'video-3.0-1080p',
-		});
+			seed: seed === -1 ? -1 : seed,
+			frames,
+		};
+
+		if (imageInputType === 'urls') {
+			let firstFrameUrl = this.getNodeParameter('firstFrameUrl', index) as string;
+			let lastFrameUrl = this.getNodeParameter('lastFrameUrl', index) as string;
+
+			// Handle file upload if needed
+			const firstFrameLinkType = checkLinkType(firstFrameUrl);
+			if (firstFrameLinkType === 'string') {
+				const result = await buildUploadFileData.call(this, firstFrameUrl);
+				firstFrameUrl = result.value;
+			}
+
+			const lastFrameLinkType = checkLinkType(lastFrameUrl);
+			if (lastFrameLinkType === 'string') {
+				const result = await buildUploadFileData.call(this, lastFrameUrl);
+				lastFrameUrl = result.value;
+			}
+
+			requestData.image_urls = [firstFrameUrl, lastFrameUrl];
+		} else {
+			const firstFrameBase64 = this.getNodeParameter('firstFrameBase64', index) as string;
+			const lastFrameBase64 = this.getNodeParameter('lastFrameBase64', index) as string;
+			requestData.binary_data_base64 = [firstFrameBase64, lastFrameBase64];
+		}
+
+		const data = await client.imageToVideo1080PFirstLastFrame(requestData);
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			taskId: data.data?.task_id,
+			status: data.data?.status,
+			error: data.message,
+			requestId: data.request_id,
 		};
 	},
 };

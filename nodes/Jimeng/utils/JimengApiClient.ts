@@ -21,12 +21,138 @@ export interface ImageGenerationRequest {
 	guidance_scale?: number;
 }
 
+export interface ImageToImage30Request {
+	prompt: string;
+	image_urls?: string[];
+	binary_data_base64?: string[];
+	seed?: number;
+	scale?: number;
+	width?: number;
+	height?: number;
+	return_url?: boolean;
+	logo_info?: LogoInfo;
+	aigc_meta?: AIGCMeta;
+}
+
+export interface TextToImage21Request {
+	prompt: string;
+	seed?: number;
+	width?: number;
+	height?: number;
+	use_pre_llm?: boolean;
+	use_sr?: boolean;
+	return_url?: boolean;
+	logo_info?: LogoInfo;
+	aigc_meta?: AIGCMeta;
+}
+
+export interface TextToImage30Request {
+	prompt: string;
+	use_pre_llm?: boolean;
+	width?: number;
+	height?: number;
+	seed?: number;
+	return_url?: boolean;
+	logo_info?: LogoInfo;
+	aigc_meta?: AIGCMeta;
+}
+
+export interface TextToImage31Request {
+	prompt: string;
+	use_pre_llm?: boolean;
+	width?: number;
+	height?: number;
+	seed?: number;
+	return_url?: boolean;
+	logo_info?: LogoInfo;
+	aigc_meta?: AIGCMeta;
+}
+
+export interface LogoInfo {
+	add_logo?: boolean;
+	position?: number;
+	language?: number;
+	opacity?: number;
+	logo_text_content?: string;
+}
+
+export interface AIGCMeta {
+	content_producer?: string;
+	producer_id?: string;
+	content_propagator?: string;
+	propagate_id?: string;
+}
+
+export interface TextToImage21Response {
+	code: number;
+	data: {
+		algorithm_base_resp: {
+			status_code: number;
+			status_message: string;
+		};
+		binary_data_base64?: string[];
+		image_urls?: string[];
+		infer_ctx: {
+			algorithm_key: string;
+			app_key: string;
+			created_at: string;
+			generate_id: string;
+			log_id: string;
+			params: any;
+			request_id: string;
+			session_id: string;
+			time_stamp: string;
+		};
+		llm_result?: string;
+		pe_result?: string;
+		predict_tags_result?: string;
+		rephraser_result?: string;
+		request_id: string;
+		vlm_result?: string;
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed: string;
+}
+
+export interface TextToImage30Response {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		binary_data_base64?: string[];
+		image_urls?: string[];
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed: string;
+}
+
+export interface TextToImage31Response {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		binary_data_base64?: string[];
+		image_urls?: string[];
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed: string;
+}
+
 export interface VideoGenerationRequest {
 	prompt: string;
 	image_url?: string;
-	model: string;
+	image_urls?: string[];
+	binary_data_base64?: string[];
+	model?: string;
 	aspect_ratio?: string;
 	duration?: number;
+	frames?: number;
 	width?: number;
 	height?: number;
 	seed?: number;
@@ -35,6 +161,13 @@ export interface VideoGenerationRequest {
 	camera_motion?: string;
 	first_frame_url?: string;
 	last_frame_url?: string;
+	template_id?: string;
+	camera_strength?: string;
+}
+
+export interface ActionImitationRequest {
+	video_url: string;
+	image_url: string;
 }
 
 export interface ImageResponse {
@@ -60,6 +193,20 @@ export interface ImageResponse {
 	};
 }
 
+export interface ImageToImage30Response {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		binary_data_base64?: string[];
+		image_urls?: string[];
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed: string;
+}
+
 export interface VideoResponse {
 	ResponseMetadata: {
 		RequestId: string;
@@ -82,6 +229,19 @@ export interface VideoResponse {
 			Message: string;
 		};
 	};
+}
+
+export interface AsyncVideoResponse {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		video_url?: string;
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed: string;
 }
 
 export class JimengApiClient {
@@ -109,7 +269,12 @@ export class JimengApiClient {
 				const now = new Date();
 				const timestamp = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
 				const payloadHash = crypto.createHash('sha256').update(JSON.stringify(config.data)).digest('hex');
-				const signature = this.generateSignature(config.method?.toUpperCase() || 'POST', config.url || '', config.data);
+
+				// Extract query string from URL for signature calculation
+				const url = new URL(config.url || '', config.baseURL);
+				const queryString = url.search.substring(1); // Remove the '?' prefix
+
+				const signature = this.generateSignature(config.method?.toUpperCase() || 'POST', queryString, config.data);
 
 				config.headers['X-Date'] = timestamp;
 				config.headers['X-Content-Sha256'] = payloadHash;
@@ -119,19 +284,20 @@ export class JimengApiClient {
 		});
 	}
 
-	private generateSignature(method: string, url: string, body: any): string {
+	private generateSignature(method: string, queryString: string, body: any): string {
 		const now = new Date();
 		const timestamp = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
 		const date = now.toISOString().substr(0, 10).replace(/-/g, '');
 		const service = 'cv';
 		const region = this.region;
 		const algorithm = 'HMAC-SHA256';
+		const host = 'visual.volcengineapi.com';
 
 		// Create canonical request
 		const canonicalUri = '/';
-		const canonicalQueryString = '';
+		const canonicalQueryString = queryString;
 		const payloadHash = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
-		const canonicalHeaders = `content-type:application/json\nhost:visual.volcengineapi.com\nx-content-sha256:${payloadHash}\nx-date:${timestamp}\n`;
+		const canonicalHeaders = `content-type:application/json\nhost:${host}\nx-content-sha256:${payloadHash}\nx-date:${timestamp}\n`;
 		const signedHeaders = 'content-type;host;x-content-sha256;x-date';
 		const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
 
@@ -150,163 +316,687 @@ export class JimengApiClient {
 	}
 
 	// Image Generation APIs
-	async textToImage21(request: ImageGenerationRequest): Promise<ImageResponse> {
-		return this.makeRequest('TextToImage', {
-			...request,
-			model: 'jimeng-2.1'
-		});
+	async textToImage21(request: TextToImage21Request): Promise<TextToImage21Response> {
+		const requestBody: any = {
+			req_key: 'jimeng_high_aes_general_v21_L',
+			prompt: request.prompt,
+			seed: request.seed || -1,
+			width: request.width || 512,
+			height: request.height || 512,
+			use_pre_llm: request.use_pre_llm !== undefined ? request.use_pre_llm : true,
+			use_sr: request.use_sr !== undefined ? request.use_sr : true,
+			return_url: request.return_url !== undefined ? request.return_url : true,
+		};
+
+		// Add optional parameters
+		if (request.logo_info) {
+			requestBody.logo_info = request.logo_info;
+		}
+
+		if (request.aigc_meta) {
+			requestBody.aigc_meta = request.aigc_meta;
+		}
+
+		return this.makeRequest('CVProcess', requestBody);
 	}
 
-	async textToImage30(request: ImageGenerationRequest): Promise<ImageResponse> {
-		return this.makeRequest('TextToImage', {
-			...request,
-			model: 'jimeng-3.0'
+	async textToImage30(request: TextToImage30Request): Promise<TextToImage30Response> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_t2i_v30',
+			prompt: request.prompt,
+			use_pre_llm: request.use_pre_llm,
+			width: request.width,
+			height: request.height,
+			seed: request.seed,
 		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Task submission failed: ${submitResponse.message}`);
+		}
+
+		// Build query parameters
+		const reqJson: any = {
+			return_url: request.return_url,
+		};
+
+		if (request.logo_info) {
+			reqJson.logo_info = request.logo_info;
+		}
+
+		if (request.aigc_meta) {
+			reqJson.aigc_meta = request.aigc_meta;
+		}
+
+		// Query task result
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_t2i_v30',
+			task_id: submitResponse.data.task_id,
+			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+		});
+
+		return queryResponse;
 	}
 
-	async textToImage31(request: ImageGenerationRequest): Promise<ImageResponse> {
-		return this.makeRequest('TextToImage', {
-			...request,
-			model: 'jimeng-3.1'
+	async textToImage31(request: TextToImage31Request): Promise<TextToImage31Response> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_t2i_v31',
+			prompt: request.prompt,
+			use_pre_llm: request.use_pre_llm,
+			width: request.width,
+			height: request.height,
+			seed: request.seed,
 		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Task submission failed: ${submitResponse.message}`);
+		}
+
+		// Build query parameters
+		const reqJson: any = {
+			return_url: request.return_url,
+		};
+
+		if (request.logo_info) {
+			reqJson.logo_info = request.logo_info;
+		}
+
+		if (request.aigc_meta) {
+			reqJson.aigc_meta = request.aigc_meta;
+		}
+
+		// Query task result
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_t2i_v31',
+			task_id: submitResponse.data.task_id,
+			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+		});
+
+		return queryResponse;
 	}
 
-	async imageToImage30(request: ImageGenerationRequest): Promise<ImageResponse> {
-		return this.makeRequest('ImageToImage', {
-			...request,
-			model: 'jimeng-3.0'
+	async getTextToImage30Result(taskId: string, options?: {
+		return_url?: boolean;
+		logo_info?: LogoInfo;
+		aigc_meta?: AIGCMeta;
+	}): Promise<TextToImage30Response> {
+		try {
+			// Build query parameters
+			const reqJson: any = {};
+
+			if (options?.return_url !== undefined) {
+				reqJson.return_url = options.return_url;
+			}
+
+			if (options?.logo_info) {
+				reqJson.logo_info = options.logo_info;
+			}
+
+			if (options?.aigc_meta) {
+				reqJson.aigc_meta = options.aigc_meta;
+			}
+
+			// Query task result
+			const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_t2i_v30',
+				task_id: taskId,
+				req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+			});
+
+			return queryResponse;
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get Text to Image 3.0 result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Text to Image 3.0 result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Text to Image 3.0 result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async getTextToImage31Result(taskId: string, options?: {
+		return_url?: boolean;
+		logo_info?: LogoInfo;
+		aigc_meta?: AIGCMeta;
+	}): Promise<TextToImage31Response> {
+		try {
+			// Build query parameters
+			const reqJson: any = {};
+
+			if (options?.return_url !== undefined) {
+				reqJson.return_url = options.return_url;
+			}
+
+			if (options?.logo_info) {
+				reqJson.logo_info = options.logo_info;
+			}
+
+			if (options?.aigc_meta) {
+				reqJson.aigc_meta = options.aigc_meta;
+			}
+
+			// Query task result
+			const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_t2i_v31',
+				task_id: taskId,
+				req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+			});
+
+			return queryResponse;
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Server internal error') || error.message.includes('Internal Error')) {
+				throw new Error(`Server internal error, please try again later`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Text to Image 3.1 result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Text to Image 3.1 result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async imageToImage30(request: ImageToImage30Request): Promise<ImageToImage30Response> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2i_v30',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed || -1,
+			scale: request.scale || 0.5,
+			width: request.width,
+			height: request.height,
 		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Image-to-Image 3.0 task submission failed: ${submitResponse.message}`);
+		}
+
+		// Build query parameters
+		const reqJson: any = {
+			return_url: request.return_url,
+		};
+
+		if (request.logo_info) {
+			reqJson.logo_info = request.logo_info;
+		}
+
+		if (request.aigc_meta) {
+			reqJson.aigc_meta = request.aigc_meta;
+		}
+
+		// Query task result
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_i2i_v30',
+			task_id: submitResponse.data.task_id,
+			req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+		});
+
+		return queryResponse;
+	}
+
+	async getImageToImage30Result(taskId: string, options?: {
+		return_url?: boolean;
+		logo_info?: LogoInfo;
+		aigc_meta?: AIGCMeta;
+	}): Promise<ImageToImage30Response> {
+		try {
+			// Build query parameters
+			const reqJson: any = {};
+
+			if (options?.return_url !== undefined) {
+				reqJson.return_url = options.return_url;
+			}
+
+			if (options?.logo_info) {
+				reqJson.logo_info = options.logo_info;
+			}
+
+			if (options?.aigc_meta) {
+				reqJson.aigc_meta = options.aigc_meta;
+			}
+
+			// Query task result
+			const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2i_v30',
+				task_id: taskId,
+				req_json: Object.keys(reqJson).length > 0 ? reqJson : undefined,
+			});
+
+			return queryResponse;
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get Image to Image 3.0 result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Image to Image 3.0 result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Image to Image 3.0 result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
 	}
 
 	// Video Generation APIs
-	async textToVideo720P(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('TextToVideo', {
-			...request,
-			model: 'video-3.0-720p'
+	async textToVideo720P(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_t2v_v30',
+			prompt: request.prompt,
+			seed: request.seed || -1,
+			frames: request.frames || 121,
+			aspect_ratio: request.aspect_ratio || '16:9',
 		});
-	}
 
-	async imageToVideo720PFirstFrame(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ImageToVideo', {
-			...request,
-			model: 'video-3.0-720p',
-			camera_motion: 'first_frame'
-		});
-	}
-
-	async imageToVideo720PFirstLastFrame(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ImageToVideo', {
-			...request,
-			model: 'video-3.0-720p',
-			camera_motion: 'first_last_frame'
-		});
-	}
-
-	async imageToVideo720PCameraMotion(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ImageToVideo', {
-			...request,
-			model: 'video-3.0-720p',
-			camera_motion: 'camera_motion'
-		});
-	}
-
-	async textToVideo1080P(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('TextToVideo', {
-			...request,
-			model: 'video-3.0-1080p'
-		});
-	}
-
-	async imageToVideo1080PFirstFrame(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ImageToVideo', {
-			...request,
-			model: 'video-3.0-1080p',
-			camera_motion: 'first_frame'
-		});
-	}
-
-	async imageToVideo1080PFirstLastFrame(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ImageToVideo', {
-			...request,
-			model: 'video-3.0-1080p',
-			camera_motion: 'first_last_frame'
-		});
-	}
-
-	async videoGeneration30Pro(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('VideoGeneration', {
-			...request,
-			model: 'video-3.0-pro'
-		});
-	}
-
-	async actionImitation(request: VideoGenerationRequest): Promise<VideoResponse> {
-		return this.makeRequest('ActionImitation', {
-			...request,
-			model: 'action-imitation'
-		});
-	}
-
-	// Status Check APIs
-	async getImageStatus(taskId: string): Promise<ImageResponse> {
-		return this.makeRequest('GetImageStatus', { TaskId: taskId });
-	}
-
-	async getVideoStatus(taskId: string): Promise<VideoResponse> {
-		return this.makeRequest('GetVideoStatus', { TaskId: taskId });
-	}
-
-	// Legacy method for backward compatibility
-	async generateVideo(
-		prompt: string,
-		imageUrl: string,
-		aspectRatio: string,
-		model: string,
-		durationMs: number,
-		waitForReturn: number
-	): Promise<any> {
-		// This is a legacy method that maps to the new API structure
-		const request: VideoGenerationRequest = {
-			prompt,
-			image_url: imageUrl,
-			aspect_ratio: aspectRatio,
-			model,
-			duration: durationMs / 1000, // Convert ms to seconds
-		};
-
-		// Choose the appropriate method based on model
-		if (model.includes('720p')) {
-			if (imageUrl) {
-				return this.imageToVideo720PFirstFrame(request);
-			} else {
-				return this.textToVideo720P(request);
-			}
-		} else if (model.includes('1080p')) {
-			if (imageUrl) {
-				return this.imageToVideo1080PFirstFrame(request);
-			} else {
-				return this.textToVideo1080P(request);
-			}
-		} else if (model.includes('pro')) {
-			return this.videoGeneration30Pro(request);
-		} else {
-			// Default to 720p text to video
-			return this.textToVideo720P(request);
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`TextToVideo 720P task submission failed: ${submitResponse.message}`);
 		}
+
+		// Query task result
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_t2v_v30',
+			task_id: submitResponse.data.task_id,
+		});
+
+		return queryResponse;
+	}
+
+	async imageToVideo720PFirstFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		return this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2v_first_v30',
+			prompt: request.prompt,
+			image_urls: request.image_url ? [request.image_url] : undefined,
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed,
+			frames: request.frames
+		});
+	}
+
+	async getImageToVideo720PFirstFrameResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2v_first_v30',
+				task_id: taskId
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get 720P image-to-video first frame result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get 720P image-to-video first frame result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get 720P image-to-video first frame result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async imageToVideo720PFirstLastFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		return this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2v_first_tail_v30',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed,
+			frames: request.frames
+		});
+	}
+
+	async getImageToVideo720PFirstLastFrameResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2v_first_tail_v30',
+				task_id: taskId
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get 720P image-to-video first-last frame result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get 720P image-to-video first-last frame result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get 720P image-to-video first-last frame result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async imageToVideo720PCameraMotion(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		return this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2v_recamera_v30',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			binary_data_base64: request.binary_data_base64,
+			template_id: request.template_id,
+			camera_strength: request.camera_strength,
+			seed: request.seed,
+			frames: request.frames
+		});
+	}
+
+	async getImageToVideo720PCameraMotionResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2v_recamera_v30',
+				task_id: taskId
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get 720P image-to-video camera motion result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get 720P image-to-video camera motion result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get 720P image-to-video camera motion result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async textToVideo1080P(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_t2v_v30_1080p',
+			prompt: request.prompt,
+			seed: request.seed || -1,
+			frames: request.frames || 121,
+			aspect_ratio: request.aspect_ratio || '16:9',
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Task submission failed: ${submitResponse.message}`);
+		}
+
+		// Query task result
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_t2v_v30_1080p',
+			task_id: submitResponse.data.task_id,
+		});
+
+		return queryResponse;
+	}
+
+	async imageToVideo1080PFirstFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		return this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2v_first_v30_1080',
+			prompt: request.prompt,
+			image_urls: request.image_urls || (request.image_url ? [request.image_url] : undefined),
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed || -1,
+			frames: request.frames || 121
+		});
+	}
+
+	async getImageToVideo1080PFirstFrameResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2v_first_v30_1080',
+				task_id: taskId
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get 1080P image-to-video first frame result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get 1080P image-to-video first frame result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get 1080P image-to-video first frame result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async imageToVideo1080PFirstLastFrame(request: VideoGenerationRequest): Promise<AsyncVideoResponse> {
+		return this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_i2v_first_tail_v30_1080',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed || -1,
+			frames: request.frames || 121
+		});
+	}
+
+	async getImageToVideo1080PFirstLastFrameResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_i2v_first_tail_v30_1080',
+				task_id: taskId
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get 1080P image-to-video first-last frame result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get 1080P image-to-video first-last frame result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get 1080P image-to-video first-last frame result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async submitVideoGeneration30ProTask(request: VideoGenerationRequest): Promise<{ task_id: string; code: number; message: string }> {
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_ti2v_v30_pro',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			binary_data_base64: request.binary_data_base64,
+			seed: request.seed || -1,
+			frames: request.frames || 121,
+			aspect_ratio: request.aspect_ratio || '16:9',
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Video Generation 3.0 Pro task submission failed: ${submitResponse.message}`);
+		}
+
+		return {
+			task_id: submitResponse.data.task_id,
+			code: submitResponse.code,
+			message: submitResponse.message,
+		};
+	}
+
+	async getVideoGeneration30ProResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_ti2v_v30_pro',
+				task_id: taskId,
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get Video Generation 3.0 Pro result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Video Generation 3.0 Pro result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Video Generation 3.0 Pro result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async submitActionImitationTask(request: ActionImitationRequest): Promise<{ task_id: string; code: number; message: string }> {
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_dream_actor_m1_gen_video_cv',
+			video_url: request.video_url,
+			image_url: request.image_url,
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Action imitation task submission failed: ${submitResponse.message}`);
+		}
+
+		return {
+			task_id: submitResponse.data.task_id,
+			code: submitResponse.code,
+			message: submitResponse.message,
+		};
+	}
+
+	async getActionImitationResult(taskId: string): Promise<AsyncVideoResponse> {
+		try {
+			return await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_dream_actor_m1_gen_video_cv',
+				task_id: taskId,
+			});
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Internal Error')) {
+				throw new Error(`Failed to get action imitation result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get action imitation result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get action imitation result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async getVideoTaskResult(taskId: string): Promise<VideoResponse> {
+		const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+			req_key: 'jimeng_t2v_v30',
+			task_id: taskId,
+		});
+
+		if (queryResponse.code !== 10000) {
+			throw new Error(`Video task query failed: ${queryResponse.message}`);
+		}
+
+		// Convert the response format to match VideoResponse interface
+		return {
+			ResponseMetadata: {
+				RequestId: queryResponse.request_id || '',
+				Action: 'GetVideoTaskResult',
+				Version: '2022-08-31',
+				Service: 'cv',
+				Region: this.region,
+			},
+			Result: {
+				TaskId: taskId,
+				Status: queryResponse.data?.status || 'Unknown',
+				Videos: queryResponse.data?.videos || [],
+				Error: queryResponse.data?.error,
+			},
+		};
 	}
 
 	private async makeRequest(action: string, body: any): Promise<any> {
 		try {
-			const response: AxiosResponse = await this.client.post('/', {
+			// Create query parameters for Action and Version
+			const queryParams = new URLSearchParams({
 				Action: action,
-				Version: '2022-08-31',
-				...body
+				Version: '2022-08-31'
 			});
+
+			const response: AxiosResponse = await this.client.post(`/?${queryParams.toString()}`, body);
+
+			// Check for specific error codes and status
+			if (response.data.code !== 10000) {
+				const errorMessage = this.getErrorMessage(response.data.code, response.data.message);
+				// Special handling for Internal Error
+				if (response.data.message && response.data.message.includes('Internal Error')) {
+					throw new Error(`Server internal error, please try again later`);
+				}
+				// Handle specific internal error codes
+				if (response.data.code === 50500 || response.data.code === 50501) {
+					throw new Error(`Server internal error, please try again later`);
+				}
+				throw new Error(errorMessage);
+			}
+
+			// Check for task status errors
+			if (response.data.data?.status === 'not_found') {
+				throw new Error('Task not found, possible reasons: no such task or task has expired (12 hours)');
+			}
+
+			if (response.data.data?.status === 'expired') {
+				throw new Error('Task has expired, please try resubmitting the task request');
+			}
 
 			return response.data;
 		} catch (error: any) {
 			console.error(`${action} error:`, error);
+
+			// Handle HTTP 404 errors
+			if (error.response?.status === 404) {
+				throw new Error('Interface does not exist or request path is incorrect');
+			}
+
+			// Handle network errors
+			if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+				throw new Error('Network connection failed, please check your network connection');
+			}
+
+			// Handle HTTP 500 errors with specific error codes
+			if (error.response?.status === 500) {
+				// Check if the response contains error data
+				if (error.response?.data?.code) {
+					const errorCode = error.response.data.code;
+					if (errorCode === 50500 || errorCode === 50501) {
+						throw new Error('Server internal error, please try again later');
+					}
+					const errorMessage = this.getErrorMessage(errorCode, error.response.data.message);
+					throw new Error(errorMessage);
+				}
+				throw new Error('Server internal error, please try again later');
+			}
+
+			// Re-throw our custom errors
+			if (error.message.includes('Task not found') || error.message.includes('Task has expired')) {
+				throw error;
+			}
+
+			// Handle specific error codes from the API response
+			if (error.response?.data?.code) {
+				const errorCode = error.response.data.code;
+				const errorMessage = this.getErrorMessage(errorCode, error.response.data.message);
+				throw new Error(`${action} failed: ${errorMessage}`);
+			}
+
 			throw new Error(`${action} failed: ${error.response?.data?.message || error.message}`);
 		}
+	}
+
+	private getErrorMessage(code: number, message: string): string {
+		const errorMessages: { [key: number]: string } = {
+			50411: 'Input image pre-audit failed',
+			50511: 'Output image post-audit failed',
+			50412: 'Input text pre-audit failed',
+			50512: 'Output text post-audit failed',
+			50413: 'Input text contains sensitive words, copyright words, etc., audit failed',
+			50429: 'QPS limit exceeded, please try again later',
+			50430: 'Concurrency limit exceeded, please try again later',
+			50500: 'Internal error, please retry',
+			50501: 'Internal algorithm error, please retry',
+		};
+
+		return errorMessages[code] || message || 'Unknown error';
 	}
 }

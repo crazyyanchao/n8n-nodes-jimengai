@@ -1,68 +1,19 @@
 import { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { ResourceOperations } from '../../../help/type/IResource';
 import { JimengApiClient } from '../../utils/JimengApiClient';
-import { checkLinkType, buildUploadFileData } from '../../../help/utils/NodeUtils';
 
-const ImageToImageOperate: ResourceOperations = {
-	name: 'Image to Image 3.0',
-	value: 'imageToImage30',
-	description: 'Generate image from image and text prompt using Jimeng 3.0 model',
+const ImageToImage30ResultOperate: ResourceOperations = {
+	name: 'Image to Image 3.0 Result',
+	value: 'imageToImage30Result',
+	description: 'Get the result of an Image to Image 3.0 task using task ID',
 	options: [
 		{
-			displayName: 'Prompt',
-			name: 'prompt',
+			displayName: 'Task ID',
+			name: 'task_id',
 			type: 'string',
 			default: '',
-			description: 'Text description for image editing (supports Chinese and English, recommended length <= 120 characters, max 800 characters)',
+			description: 'Task ID returned from Image to Image 3.0 submission',
 			required: true,
-		},
-		{
-			displayName: 'Image URL',
-			name: 'image_urls',
-			type: 'string',
-			default: '',
-			description: 'URL or path to the input image (supports only one image)',
-			required: true,
-		},
-		{
-			displayName: 'Scale',
-			name: 'scale',
-			type: 'number',
-			default: 0.5,
-			description: 'Text description influence degree (0-1, higher value means more influence from text description)',
-			typeOptions: {
-				minValue: 0,
-				maxValue: 1,
-			},
-		},
-		{
-			displayName: 'Width',
-			name: 'width',
-			type: 'number',
-			default: 1328,
-			description: 'Image width. Supported range: 512-2016. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-			typeOptions: {
-				minValue: 512,
-				maxValue: 2016,
-			},
-		},
-		{
-			displayName: 'Height',
-			name: 'height',
-			type: 'number',
-			default: 1328,
-			description: 'Image height. Supported range: 512-2016. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-			typeOptions: {
-				minValue: 512,
-				maxValue: 2016,
-			},
-		},
-		{
-			displayName: 'Seed',
-			name: 'seed',
-			type: 'number',
-			default: -1,
-			description: 'Random seed for generation (-1 for random). Same seed with same parameters will generate similar results.',
 		},
 		{
 			displayName: 'Return URL',
@@ -103,6 +54,17 @@ const ImageToImageOperate: ResourceOperations = {
 					description: 'Watermark language',
 				},
 				{
+					displayName: 'Opacity',
+					name: 'opacity',
+					type: 'number',
+					default: 0.3,
+					typeOptions: {
+						minValue: 0,
+						maxValue: 1,
+					},
+					description: 'Watermark opacity (0-1)',
+				},
+				{
 					displayName: 'Position',
 					name: 'position',
 					type: 'options',
@@ -135,7 +97,7 @@ const ImageToImageOperate: ResourceOperations = {
 					name: 'producer_id',
 					type: 'string',
 					default: '',
-					description: 'Unique ID for this image data from content generation service provider',
+					description: 'Unique ID for this image data from content generation service',
 				},
 				{
 					displayName: 'Content Propagator',
@@ -155,22 +117,15 @@ const ImageToImageOperate: ResourceOperations = {
 		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
-		const prompt = this.getNodeParameter('prompt', index) as string;
-		let imageUrls = this.getNodeParameter('image_urls', index) as string;
-		const scale = this.getNodeParameter('scale', index) as number;
-		const width = this.getNodeParameter('width', index) as number;
-		const height = this.getNodeParameter('height', index) as number;
-		const seed = this.getNodeParameter('seed', index) as number;
+		const taskId = this.getNodeParameter('task_id', index) as string;
 		const returnUrl = this.getNodeParameter('return_url', index) as boolean;
 		const watermarkSettings = this.getNodeParameter('watermark_settings', index) as any;
 		const aigcMetaSettings = this.getNodeParameter('aigc_meta_settings', index) as any;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
-		// Handle file upload if needed
-		const linkType = checkLinkType(imageUrls);
-		if (linkType === 'string') {
-			const result = await buildUploadFileData.call(this, imageUrls);
-			imageUrls = result.value;
+		// Validate task ID
+		if (!taskId || taskId.trim() === '') {
+			throw new Error('Task ID is required. Please provide a valid task ID from the Image to Image 3.0 submission.');
 		}
 
 		const client = new JimengApiClient({
@@ -202,32 +157,47 @@ const ImageToImageOperate: ResourceOperations = {
 			};
 		}
 
-		const data = await client.imageToImage30({
-			prompt,
-			image_urls: [imageUrls],
-			scale,
-			width,
-			height,
-			seed: seed === -1 ? undefined : seed,
-			return_url: returnUrl,
-			logo_info: logoInfo,
-			aigc_meta: aigcMeta,
-		});
+		try {
+			const data = await client.getImageToImage30Result(taskId, {
+				return_url: returnUrl,
+				logo_info: logoInfo,
+				aigc_meta: aigcMeta,
+			});
 
-		return {
-			code: data.code,
-			message: data.message,
-			requestId: data.request_id,
-			status: data.status,
-			timeElapsed: data.time_elapsed,
-			data: {
-				taskId: data.data?.task_id,
-				status: data.data?.status,
-				binaryDataBase64: data.data?.binary_data_base64 || [],
-				imageUrls: data.data?.image_urls || [],
-			},
-		};
+			return {
+				code: data.code,
+				message: data.message,
+				requestId: data.request_id,
+				status: data.status,
+				timeElapsed: data.time_elapsed,
+				data: {
+					taskId: data.data?.task_id,
+					status: data.data?.status,
+					binaryDataBase64: data.data?.binary_data_base64 || [],
+					imageUrls: data.data?.image_urls || [],
+				},
+			};
+		} catch (error: any) {
+			// Provide more specific error messages based on the error type
+			if (error.message.includes('Server internal error')) {
+				throw new Error(`Server internal error, please try again later. Task ID: ${taskId}`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Task not found. Please check if the Task ID "${taskId}" is correct and hasn't expired (tasks expire after 12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Task has expired. Please resubmit the Image to Image 3.0 task and use the new Task ID.`);
+			}
+			if (error.message.includes('QPS limit exceeded')) {
+				throw new Error(`Request rate limit exceeded. Please wait a moment and try again.`);
+			}
+			if (error.message.includes('Concurrency limit exceeded')) {
+				throw new Error(`Concurrent request limit exceeded. Please wait for other requests to complete and try again.`);
+			}
+			// Re-throw the original error if it's not one of the handled cases
+			throw error;
+		}
 	},
 };
 
-export default ImageToImageOperate;
+export default ImageToImage30ResultOperate;

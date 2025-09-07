@@ -29,6 +29,7 @@ const TextToVideo720POperate: ResourceOperations = {
 				{ name: '9:16', value: '9:16' },
 			],
 			description: 'Video aspect ratio',
+			required: true,
 		},
 		{
 			displayName: 'Duration (Seconds)',
@@ -40,6 +41,7 @@ const TextToVideo720POperate: ResourceOperations = {
 				maxValue: 10,
 			},
 			description: 'Video duration in seconds (1-10)',
+			required: true,
 		},
 		{
 			displayName: 'Seed',
@@ -48,36 +50,12 @@ const TextToVideo720POperate: ResourceOperations = {
 			default: -1,
 			description: 'Random seed for generation (-1 for random)',
 		},
-		{
-			displayName: 'Steps',
-			name: 'steps',
-			type: 'number',
-			default: 20,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 50,
-			},
-			description: 'Number of denoising steps (1-50)',
-		},
-		{
-			displayName: 'Guidance Scale',
-			name: 'guidance_scale',
-			type: 'number',
-			default: 7.5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 20,
-			},
-			description: 'Guidance scale for prompt adherence (1-20)',
-		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
 		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
 		const duration = this.getNodeParameter('duration', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
-		const steps = this.getNodeParameter('steps', index) as number;
-		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
 		const client = new JimengApiClient({
@@ -86,22 +64,22 @@ const TextToVideo720POperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
+		// Calculate frames based on duration (frames = 24 * n + 1, where n is seconds)
+		const frames = 24 * duration + 1;
+
 		const data = await client.textToVideo720P({
 			prompt,
 			aspect_ratio: aspectRatio,
-			duration,
+			frames,
 			seed: seed === -1 ? undefined : seed,
-			steps,
-			guidance_scale: guidanceScale,
-			model: 'video-3.0-720p',
 		});
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			taskId: data.data?.task_id,
+			status: data.data?.status,
+			videoUrl: data.data?.video_url,
+			message: data.message,
+			requestId: data.request_id,
 		};
 	},
 };

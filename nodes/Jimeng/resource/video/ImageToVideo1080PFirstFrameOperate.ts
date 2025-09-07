@@ -13,42 +13,56 @@ const ImageToVideo1080PFirstFrameOperate: ResourceOperations = {
 			name: 'prompt',
 			type: 'string',
 			default: '',
-			description: 'Text description for video generation',
+			description: 'Text description for video generation (max 800 characters)',
 			required: true,
+		},
+		{
+			displayName: 'Image Input Type',
+			name: 'imageInputType',
+			type: 'options',
+			default: 'url',
+			options: [
+				{ name: 'Image URL', value: 'url' },
+				{ name: 'Base64 Data', value: 'base64' },
+			],
+			description: 'Choose how to provide the image',
 		},
 		{
 			displayName: 'Image URL',
 			name: 'imageUrl',
 			type: 'string',
 			default: '',
-			description: 'URL or path to the input image',
+			description: 'URL or path to the input image (JPEG/PNG format, max 4.7MB, max 4096x4096)',
+			displayOptions: {
+				show: {
+					imageInputType: ['url'],
+				},
+			},
 			required: true,
 		},
 		{
-			displayName: 'Aspect Ratio',
-			name: 'aspect_ratio',
-			type: 'options',
-			default: '16:9',
-			options: [
-				{ name: '1:1', value: '1:1' },
-				{ name: '16:9', value: '16:9' },
-				{ name: '21:9', value: '21:9' },
-				{ name: '3:4', value: '3:4' },
-				{ name: '4:3', value: '4:3' },
-				{ name: '9:16', value: '9:16' },
-			],
-			description: 'Video aspect ratio',
+			displayName: 'Image Base64',
+			name: 'imageBase64',
+			type: 'string',
+			default: '',
+			description: 'Base64 encoded image data (JPEG/PNG format, max 4.7MB, max 4096x4096)',
+			displayOptions: {
+				show: {
+					imageInputType: ['base64'],
+				},
+			},
+			required: true,
 		},
 		{
-			displayName: 'Duration (Seconds)',
-			name: 'duration',
-			type: 'number',
-			default: 5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 10,
-			},
-			description: 'Video duration in seconds (1-10)',
+			displayName: 'Frames',
+			name: 'frames',
+			type: 'options',
+			default: 121,
+			options: [
+				{ name: '5 Seconds (121 Frames)', value: 121 },
+				{ name: '10 Seconds (241 Frames)', value: 241 },
+			],
+			description: 'Total number of frames to generate (121 for 5s, 241 for 10s)',
 		},
 		{
 			displayName: 'Seed',
@@ -57,45 +71,13 @@ const ImageToVideo1080PFirstFrameOperate: ResourceOperations = {
 			default: -1,
 			description: 'Random seed for generation (-1 for random)',
 		},
-		{
-			displayName: 'Steps',
-			name: 'steps',
-			type: 'number',
-			default: 20,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 50,
-			},
-			description: 'Number of denoising steps (1-50)',
-		},
-		{
-			displayName: 'Guidance Scale',
-			name: 'guidance_scale',
-			type: 'number',
-			default: 7.5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 20,
-			},
-			description: 'Guidance scale for prompt adherence (1-20)',
-		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
-		let imageUrl = this.getNodeParameter('imageUrl', index) as string;
-		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
-		const duration = this.getNodeParameter('duration', index) as number;
+		const imageInputType = this.getNodeParameter('imageInputType', index) as string;
+		const frames = this.getNodeParameter('frames', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
-		const steps = this.getNodeParameter('steps', index) as number;
-		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
-
-		// Handle file upload if needed
-		const linkType = checkLinkType(imageUrl);
-		if (linkType === 'string') {
-			const result = await buildUploadFileData.call(this, imageUrl);
-			imageUrl = result.value;
-		}
 
 		const client = new JimengApiClient({
 			accessKeyId: credentials.accessKeyId as string,
@@ -103,23 +85,36 @@ const ImageToVideo1080PFirstFrameOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.imageToVideo1080PFirstFrame({
+		let requestData: any = {
 			prompt,
-			image_url: imageUrl,
-			aspect_ratio: aspectRatio,
-			duration,
-			seed: seed === -1 ? undefined : seed,
-			steps,
-			guidance_scale: guidanceScale,
-			model: 'video-3.0-1080p',
-		});
+			seed: seed === -1 ? -1 : seed,
+			frames,
+		};
+
+		if (imageInputType === 'url') {
+			let imageUrl = this.getNodeParameter('imageUrl', index) as string;
+
+			// Handle file upload if needed
+			const linkType = checkLinkType(imageUrl);
+			if (linkType === 'string') {
+				const result = await buildUploadFileData.call(this, imageUrl);
+				imageUrl = result.value;
+			}
+
+			requestData.image_urls = [imageUrl];
+		} else {
+			const imageBase64 = this.getNodeParameter('imageBase64', index) as string;
+			requestData.binary_data_base64 = [imageBase64];
+		}
+
+		const data = await client.imageToVideo1080PFirstFrame(requestData);
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			taskId: data.data?.task_id,
+			status: data.data?.status,
+			videoUrl: data.data?.video_url,
+			error: data.message,
+			requestId: data.request_id,
 		};
 	},
 };

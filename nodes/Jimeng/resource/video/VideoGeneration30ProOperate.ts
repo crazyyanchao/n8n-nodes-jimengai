@@ -38,29 +38,22 @@ const VideoGeneration30ProOperate: ResourceOperations = {
 			description: 'Video aspect ratio',
 		},
 		{
-			displayName: 'Duration (Seconds)',
-			name: 'duration',
-			type: 'number',
-			default: 5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 10,
-			},
-			description: 'Video duration in seconds (1-10)',
+			displayName: 'Frames',
+			name: 'frames',
+			type: 'options',
+			default: 121,
+			options: [
+				{ name: '5 Seconds (121 Frames)', value: 121 },
+				{ name: '10 Seconds (241 Frames)', value: 241 },
+			],
+			description: 'Total number of frames (121 for 5s, 241 for 10s)',
 		},
 		{
-			displayName: 'Width',
-			name: 'width',
-			type: 'number',
-			default: 1920,
-			description: 'Video width (Pro model supports custom resolution)',
-		},
-		{
-			displayName: 'Height',
-			name: 'height',
-			type: 'number',
-			default: 1080,
-			description: 'Video height (Pro model supports custom resolution)',
+			displayName: 'Image URL',
+			name: 'imageUrl',
+			type: 'string',
+			default: '',
+			description: 'URL of the input image for image-to-video generation (optional)',
 		},
 		{
 			displayName: 'Seed',
@@ -69,39 +62,13 @@ const VideoGeneration30ProOperate: ResourceOperations = {
 			default: -1,
 			description: 'Random seed for generation (-1 for random)',
 		},
-		{
-			displayName: 'Steps',
-			name: 'steps',
-			type: 'number',
-			default: 20,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 50,
-			},
-			description: 'Number of denoising steps (1-50)',
-		},
-		{
-			displayName: 'Guidance Scale',
-			name: 'guidance_scale',
-			type: 'number',
-			default: 7.5,
-			typeOptions: {
-				minValue: 1,
-				maxValue: 20,
-			},
-			description: 'Guidance scale for prompt adherence (1-20)',
-		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
 		const imageUrl = this.getNodeParameter('imageUrl', index) as string;
 		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
-		const duration = this.getNodeParameter('duration', index) as number;
-		const width = this.getNodeParameter('width', index) as number;
-		const height = this.getNodeParameter('height', index) as number;
+		const frames = this.getNodeParameter('frames', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
-		const steps = this.getNodeParameter('steps', index) as number;
-		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
 		const client = new JimengApiClient({
@@ -110,25 +77,19 @@ const VideoGeneration30ProOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.videoGeneration30Pro({
+		// Submit task
+		const submitData = await client.submitVideoGeneration30ProTask({
 			prompt,
-			image_url: imageUrl || undefined,
+			image_urls: imageUrl ? [imageUrl] : undefined,
 			aspect_ratio: aspectRatio,
-			duration,
-			width,
-			height,
+			frames,
 			seed: seed === -1 ? undefined : seed,
-			steps,
-			guidance_scale: guidanceScale,
-			model: 'video-3.0-pro',
 		});
 
 		return {
-			taskId: data.Result.TaskId,
-			status: data.Result.Status,
-			videos: data.Result.Videos || [],
-			error: data.Result.Error,
-			requestId: data.ResponseMetadata.RequestId,
+			taskId: submitData.task_id,
+			status: 'submitted',
+			message: submitData.message,
 		};
 	},
 };

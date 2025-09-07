@@ -1,7 +1,7 @@
 # n8n-nodes-jimengai
 
 [![English](https://img.shields.io/badge/English-Click-yellow)](README.md)
-[![中文文档](https://img.shields.io/badge/中文文档-点击查看-orange)](README-zh.md)
+[![Chinese Document](https://img.shields.io/badge/Chinese-Document-orange)](README-zh.md)
 
 > Seamlessly integrate Jimeng's image/video generation capabilities into n8n for visual AI content creation workflows.
 
@@ -43,20 +43,29 @@
    - SecretAccessKey
    - Region
 
+   **Note**: You may not see "Connection tested successfully" during credential configuration. This is normal behavior. Authentication will be validated during actual API calls.
+
 6. Fill in parameters and start generating.
 
-7. Can be combined with other nodes (such as: OpenAI, Notion, Telegram, Drive, etc.) to build complete automation workflows.
+7. **Async Task Processing**:
+   - For async interfaces (Text-to-Image 3.0/3.1, all video generation), task ID will be returned
+   - Use corresponding status query interfaces to periodically check task status
+   - Retrieve generated images or videos when tasks are completed
+
+8. Can be combined with other nodes (such as: OpenAI, Notion, Telegram, Drive, etc.) to build complete automation workflows.
 
 ## Core Features
 
 ### ✨ Image Generation
-- **Text-to-Image 2.1**: Generate high-quality images from text descriptions
-- **Text-to-Image 3.0**: Use Jimeng 3.0 model for text-to-image generation
-- **Text-to-Image 3.1**: Use Jimeng 3.1 model for text-to-image generation
-- **Image-to-Image 3.0**: Generate new images based on existing images and text prompts
-- **Status Query**: Real-time query of image generation task status
+- **Text-to-Image 2.1**: Generate high-quality images from text descriptions (synchronous)
+- **Text-to-Image 3.0**: Use Jimeng 3.0 model for text-to-image generation (asynchronous)
+- **Text-to-Image 3.1**: Use Jimeng 3.1 model for text-to-image generation (asynchronous)
+- **Image-to-Image 3.0**: Generate new images based on existing images and text prompts (asynchronous)
+- **Result Query**: Text-to-Image 3.0 result query, Text-to-Image 3.1 result query, Image-to-Image 3.0 result query
 - **Multi-model Support**: jimeng-2.1, jimeng-3.0, jimeng-3.1
 - **Flexible Dimensions**: Support multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
+- **Watermark Settings**: Support custom watermark text, position, transparency, etc.
+- **AIGC Metadata**: Support content producer, distributor and other metadata settings
 - **Async Processing**: Choose to wait for completion or process asynchronously
 
 ### 🎬 Video Generation
@@ -69,21 +78,24 @@
 - **Image-to-Video 1080P-First Last Frame**: Generate 1080P videos based on image first and last frames
 - **Video Generation 3.0 Pro**: Use Pro model to generate high-quality videos
 - **Action Imitation**: Generate videos based on reference video action imitation
-- **Status Query**: Real-time query of video generation task status
+- **Video Result Query**: Real-time query of various video generation task status and results
 - **Flexible Parameters**: Support multiple aspect ratios and duration settings (1-10 seconds)
 - **Async Processing**: Choose to wait for completion or process asynchronously
 
 ## Implemented API Interfaces
 
-### 📸 Image Generation Interfaces (4)
+### 📸 Image Generation Interfaces (7)
 | Interface Name | File Path | Model Version | Description |
 |---------------|-----------|---------------|-------------|
-| Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions |
-| Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation |
-| Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation |
-| Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts |
+| Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions (synchronous) |
+| Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation (asynchronous) |
+| Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation (asynchronous) |
+| Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts (asynchronous) |
+| Text-to-Image 3.0 Result | `TextToImage30ResultOperate.ts` | - | Query text-to-image 3.0 task results |
+| Text-to-Image 3.1 Result | `TextToImage31ResultOperate.ts` | - | Query text-to-image 3.1 task results |
+| Image-to-Image 3.0 Result | `ImageToImage30ResultOperate.ts` | - | Query image-to-image 3.0 task results |
 
-### 🎬 Video Generation Interfaces (9)
+### 🎬 Video Generation Interfaces (18)
 | Interface Name | File Path | Model Version | Description |
 |---------------|-----------|---------------|-------------|
 | Text-to-Video 720P | `TextToVideo720POperate.ts` | video-3.0-720p | Generate 720P videos from text descriptions |
@@ -95,23 +107,28 @@
 | Image-to-Video 1080P-First Last Frame | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first and last frames |
 | Video Generation 3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | Use Pro model to generate high-quality videos |
 | Action Imitation | `ActionImitationOperate.ts` | action-imitation | Generate videos based on reference video action imitation |
-
-### 📊 Status Query Interfaces (2)
-| Interface Name | File Path | Description |
-|---------------|-----------|-------------|
-| Get Image Status | `GetImageStatusOperate.ts` | Query image generation task status |
-| Get Video Status | `GetVideoStatusOperate.ts` | Query video generation task status |
+| Text-to-Video 720P Result | `TextToVideo720PResultOperate.ts` | - | Query text-to-video 720P task results |
+| Text-to-Video 1080P Result | `TextToVideo1080PResultOperate.ts` | - | Query text-to-video 1080P task results |
+| Image-to-Video 720P-First Frame Result | `ImageToVideo720PFirstFrameResultOperate.ts` | - | Query image-to-video 720P-first frame task results |
+| Image-to-Video 720P-First Last Frame Result | `ImageToVideo720PFirstLastFrameResultOperate.ts` | - | Query image-to-video 720P-first last frame task results |
+| Image-to-Video 720P-Camera Motion Result | `ImageToVideo720PCameraMotionResultOperate.ts` | - | Query image-to-video 720P-camera motion task results |
+| Image-to-Video 1080P-First Frame Result | `ImageToVideo1080PFirstFrameResultOperate.ts` | - | Query image-to-video 1080P-first frame task results |
+| Image-to-Video 1080P-First Last Frame Result | `ImageToVideo1080PFirstLastFrameResultOperate.ts` | - | Query image-to-video 1080P-first last frame task results |
+| Video Generation 3.0 Pro Result | `VideoGeneration30ProResultOperate.ts` | - | Query video generation 3.0 Pro task results |
+| Action Imitation Result | `ActionImitationResultOperate.ts` | - | Query action imitation task results |
 
 ## Feature Overview
 
 ### 🎯 Core Operations
 | Feature Type | Operation Name | Description | Supported Models |
 |-------------|---------------|-------------|------------------|
-| **Image Generation** | Text-to-Image 2.1 | Generate images from text descriptions | jimeng-2.1 |
-| | Text-to-Image 3.0 | Use 3.0 model for text-to-image generation | jimeng-3.0 |
-| | Text-to-Image 3.1 | Use 3.1 model for text-to-image generation | jimeng-3.1 |
-| | Image-to-Image 3.0 | Generate new images from existing images and text prompts | jimeng-3.0 |
-| | Get Image Status | Query image generation task status | - |
+| **Image Generation** | Text-to-Image 2.1 | Generate images from text descriptions (synchronous) | jimeng-2.1 |
+| | Text-to-Image 3.0 | Use 3.0 model for text-to-image generation (asynchronous) | jimeng-3.0 |
+| | Text-to-Image 3.1 | Use 3.1 model for text-to-image generation (asynchronous) | jimeng-3.1 |
+| | Image-to-Image 3.0 | Generate new images from existing images and text prompts (asynchronous) | jimeng-3.0 |
+| | Text-to-Image 3.0 Result | Query text-to-image 3.0 task results | - |
+| | Text-to-Image 3.1 Result | Query text-to-image 3.1 task results | - |
+| | Image-to-Image 3.0 Result | Query image-to-image 3.0 task results | - |
 | **Video Generation** | Text-to-Video 720P | Generate 720P videos from text descriptions | video-3.0-720p |
 | | Text-to-Video 1080P | Generate 1080P videos from text descriptions | video-3.0-1080p |
 | | Image-to-Video 720P-First Frame | Generate 720P videos based on image first frame | video-3.0-720p |
@@ -121,7 +138,7 @@
 | | Image-to-Video 1080P-First Last Frame | Generate 1080P videos based on image first and last frames | video-3.0-1080p |
 | | Video Generation 3.0 Pro | Use Pro model to generate high-quality videos | video-3.0-pro |
 | | Action Imitation | Generate videos based on reference video action imitation | action-imitation |
-| | Get Video Status | Query video generation task status | - |
+| **Status Query** | Various Video Result Queries | Query various video generation task status and results | - |
 
 ### ⚙️ Parameter Configuration
 - **Image Dimensions**: Support custom width and height, multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
@@ -130,6 +147,8 @@
 - **Image Style**: Anime, oil painting, realistic, sketch, watercolor, etc.
 - **Camera Motion**: Pan, tilt, zoom and other camera motion methods
 - **Generation Parameters**: Steps, guidance scale, random seed, etc.
+- **Watermark Settings**: Custom watermark text, position (four corners), transparency, language (Chinese/English)
+- **AIGC Metadata**: Content producer, distributor, unique identifier and other metadata configuration
 - **Generation Mode**: Synchronous wait or asynchronous processing
 - **Model Selection**: Multiple Jimeng AI models available
 
@@ -146,6 +165,50 @@
 - **Data-driven**: Combined with Notion, Airtable and other data source nodes
 - **Conditional Logic**: Combined with IF nodes for intelligent content filtering
 - **Scheduled Triggers**: Combined with Cron nodes for scheduled content generation
+
+## Async Processing Mode
+
+### 🔄 Synchronous vs Asynchronous Interfaces
+
+#### Synchronous Interfaces (Immediate Results)
+- **Text-to-Image 2.1**: Returns generated images immediately after task submission
+- Suitable for quick generation needs, no waiting time required
+
+#### Asynchronous Interfaces (Require Status Query)
+- **Text-to-Image 3.0/3.1**: Returns task ID after submission, requires periodic status query
+- **Image-to-Image 3.0**: Returns task ID after submission, requires periodic status query
+- **All Video Generation Interfaces**: Returns task ID after submission, requires periodic result query
+- Suitable for high-quality generation needs with longer processing time
+
+### 📋 Async Processing Workflow
+
+1. **Submit Generation Task**: Use the corresponding generation interface to submit a task
+2. **Get Task ID**: Record the returned task ID
+3. **Status Query**: Use the corresponding result query interface to periodically check task status
+   - Image generation: Text-to-Image 3.0 result, Text-to-Image 3.1 result, Image-to-Image 3.0 result
+   - Video generation: Various video result query interfaces
+4. **Get Results**: Retrieve generated images or videos when task is completed
+5. **Optional Configuration**: Configure watermarks and AIGC metadata during result query
+
+### ⏱️ Task Status Description
+
+- **pending**: Task submitted, waiting for processing
+- **processing**: Task is being processed
+- **completed**: Task completed, results can be retrieved
+- **failed**: Task failed, check error information
+
+### 🔍 Result Query Features
+
+#### Image Result Query Features
+- **Watermark Settings**: Support adding custom watermarks, choose position, transparency, language
+- **AIGC Metadata**: Support setting content producer, distributor and other metadata information
+- **Multiple Return Formats**: Support returning image URLs (24-hour validity) or Base64 encoded data
+- **Status Monitoring**: Real-time monitoring of task progress and completion status
+
+#### Video Result Query Features
+- **Multi-resolution Support**: 720P, 1080P and other resolution result queries
+- **Multiple Generation Modes**: Text-to-video, image-to-video, action imitation result queries
+- **Status Monitoring**: Real-time monitoring of video generation progress and completion status
 
 ## Technical Architecture
 
@@ -179,6 +242,72 @@ This plugin authenticates using Jimeng API's `AccessKeyID` and `SecretAccessKey`
 - It is recommended to rotate API keys regularly to ensure security
 - It is recommended to verify authentication validity in a test environment first
 - Authentication information has a time limit and needs to be updated regularly
+
+## Troubleshooting
+
+### ❌ Authentication Configuration Issues
+
+**Problem**: When configuring Jimeng Credentials in n8n, you encounter "Couldn't connect with these settings" or "Bad request - please check your parameters" errors, and cannot see the "Connection tested successfully" prompt.
+
+**Cause**: The authentication test endpoints for Volcengine Jimeng API require specific permissions that regular users may not have access to.
+
+**Solutions**:
+1. **Ignore authentication test errors**: This is normal behavior. Authentication will be validated during actual API calls
+2. **Use the node directly**: After configuring authentication information, use the Jimeng node directly for image or video generation
+3. **Verify authentication information**: Ensure AccessKeyID, SecretAccessKey, and Region are configured correctly
+4. **Check permissions**: Ensure your Jimeng account has the corresponding API call permissions
+
+**Verification method**:
+- Try running a simple image generation task
+- If the task executes successfully, the authentication configuration is correct
+- If the task fails, please check if the authentication information is correct
+
+### 🔧 Common Issues and Solutions
+
+#### Task Status Query Issues
+**Problem**: Unable to query task status or get results for async operations.
+
+**Solutions**:
+1. **Check Task ID**: Ensure the task ID is correctly passed from the generation interface
+2. **Verify Interface Match**: Use the correct result query interface for the corresponding generation interface
+3. **Check Task Status**: Ensure the task is not in "failed" status before querying results
+4. **Retry Mechanism**: Implement retry logic for status queries with appropriate intervals
+
+#### Generation Parameter Issues
+**Problem**: Generation fails or produces unexpected results.
+
+**Solutions**:
+1. **Parameter Validation**: Check if all required parameters are provided
+2. **Model Compatibility**: Ensure parameter values are compatible with the selected model
+3. **Image Format**: For image-to-image operations, ensure input images are in supported formats
+4. **Size Limits**: Check if image/video dimensions are within supported ranges
+
+#### API Rate Limiting
+**Problem**: API calls are being rate limited or rejected.
+
+**Solutions**:
+1. **Reduce Frequency**: Implement delays between API calls
+2. **Batch Processing**: Group multiple requests when possible
+3. **Error Handling**: Implement proper retry logic with exponential backoff
+4. **Monitor Usage**: Track API usage to stay within limits
+
+#### Watermark and Metadata Issues
+**Problem**: Watermarks or AIGC metadata not appearing correctly in generated content.
+
+**Solutions**:
+1. **Check Watermark Settings**: Verify watermark text, position, and transparency settings
+2. **Language Support**: Ensure watermark language matches the content language
+3. **Metadata Format**: Check if AIGC metadata fields are properly formatted
+4. **Result Query Configuration**: Ensure watermark and metadata are configured during result query
+
+#### Async Task Timeout Issues
+**Problem**: Async tasks taking too long or timing out.
+
+**Solutions**:
+1. **Check Task Status**: Monitor task status regularly to avoid timeouts
+2. **Adjust Timeout Settings**: Increase timeout values for complex generation tasks
+3. **Task Priority**: Check if there are high-priority tasks in the queue
+4. **Resource Availability**: Ensure sufficient resources are available for generation
 
 ## Compatibility
 
