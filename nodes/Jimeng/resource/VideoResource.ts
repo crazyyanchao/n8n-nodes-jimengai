@@ -1,6 +1,6 @@
 import { INodeProperties } from 'n8n-workflow';
 
-export const videoResource: INodeProperties = {
+const videoResource: INodeProperties = {
 	displayName: 'Resource',
 	name: 'resource',
 	type: 'options',
@@ -14,7 +14,7 @@ export const videoResource: INodeProperties = {
 	default: 'video',
 };
 
-export const videoOperations: INodeProperties = {
+const videoOperations: INodeProperties = {
 	displayName: 'Operation',
 	name: 'operation',
 	type: 'options',
@@ -46,3 +46,6 @@ export const videoOperations: INodeProperties = {
 	],
 	default: 'textToVideo',
 };
+
+export default videoResource;
+export { videoOperations };

@@ -43,16 +43,16 @@ ModuleLoadUtils.loadModules(__dirname, 'resource/*.js').forEach((resource) => {
 /* -------------------------------------------------------------------
  * Node Implementation
  * ---------------------------------------------------------------- */
-export class JimengAi implements INodeType {
+export class Jimeng implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Jimeng AI',
-		name: 'jimengAi',
+		displayName: 'Jimeng',
+		name: 'jimeng',
 		icon: 'file:./jimeng.logo.svg',
 		group: ['transform'],
 		version: 1,
 		description: 'Generate images and videos using Jimeng AI within n8n workflows.',
 		defaults: {
-			name: 'Jimeng AI',
+			name: 'Jimeng',
 		},
 		inputs: ['main'],
 		outputs: ['main'],

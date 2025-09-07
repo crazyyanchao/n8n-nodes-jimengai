@@ -1,6 +1,6 @@
 import { INodeProperties } from 'n8n-workflow';
 
-export const imageResource: INodeProperties = {
+const imageResource: INodeProperties = {
 	displayName: 'Resource',
 	name: 'resource',
 	type: 'options',
@@ -14,7 +14,7 @@ export const imageResource: INodeProperties = {
 	default: 'image',
 };
 
-export const imageOperations: INodeProperties = {
+const imageOperations: INodeProperties = {
 	displayName: 'Operation',
 	name: 'operation',
 	type: 'options',
@@ -46,3 +46,6 @@ export const imageOperations: INodeProperties = {
 	],
 	default: 'textToImage',
 };
+
+export default imageResource;
+export { imageOperations };

@@ -1,4 +1,4 @@
-const { JimengAI } = require('../../dist/nodes/JimengAI/JimengAI.node');
+const { Jimeng } = require('../../dist/nodes/Jimeng/Jimeng.node');
 
 // Test configuration
 const testConfig = {
@@ -50,11 +50,11 @@ const mockContext = {
 };
 
 // Test function
-async function testJimengAINode() {
+async function testJimengNode() {
 	console.log('Testing Jimeng AI Node...');
 
 	try {
-		const node = new JimengAI();
+		const node = new Jimeng();
 		console.log('Node created successfully');
 		console.log('Node description:', node.description.displayName);
 		console.log('Available resources:', node.description.properties.map(p => p.name));
@@ -71,7 +71,7 @@ async function testJimengAINode() {
 
 // Run test
 if (require.main === module) {
-	testJimengAINode().catch(console.error);
+	testJimengNode().catch(console.error);
 }
 
-module.exports = { testJimengAINode, mockContext };
+module.exports = { testJimengNode, mockContext };
