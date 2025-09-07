@@ -4,7 +4,7 @@ import { JimengApiClient } from '../../utils/JimengApiClient';
 
 const TextToImageOperate: ResourceOperations = {
 	name: 'Text to Image',
-	value: 'image:textToImage',
+	value: 'textToImage',
 	description: 'Generate image from text prompt',
 	options: [
 		{

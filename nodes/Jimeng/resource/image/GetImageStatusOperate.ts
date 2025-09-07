@@ -4,7 +4,7 @@ import { JimengApiClient } from '../../utils/JimengApiClient';
 
 const GetImageStatusOperate: ResourceOperations = {
 	name: 'Get Image Status',
-	value: 'image:getImageStatus',
+	value: 'getImageStatus',
 	description: 'Get the status of image generation',
 	options: [
 		{

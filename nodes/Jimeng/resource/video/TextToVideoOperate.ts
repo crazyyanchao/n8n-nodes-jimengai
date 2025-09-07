@@ -4,7 +4,7 @@ import { JimengApiClient } from '../../utils/JimengApiClient';
 
 const TextToVideoOperate: ResourceOperations = {
 	name: 'Text to Video',
-	value: 'video:textToVideo',
+	value: 'textToVideo',
 	description: 'Generate video from text prompt',
 	options: [
 		{

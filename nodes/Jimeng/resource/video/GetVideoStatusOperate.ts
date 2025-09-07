@@ -4,7 +4,7 @@ import { JimengApiClient } from '../../utils/JimengApiClient';
 
 const GetVideoStatusOperate: ResourceOperations = {
 	name: 'Get Video Status',
-	value: 'video:getVideoStatus',
+	value: 'getVideoStatus',
 	description: 'Get the status of video generation',
 	options: [
 		{

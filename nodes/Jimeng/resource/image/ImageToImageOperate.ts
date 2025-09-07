@@ -5,7 +5,7 @@ import { checkLinkType, buildUploadFileData } from '../../../help/utils/NodeUtil
 
 const ImageToImageOperate: ResourceOperations = {
 	name: 'Image to Image',
-	value: 'image:imageToImage',
+	value: 'imageToImage',
 	description: 'Generate image from image and text prompt',
 	options: [
 		{

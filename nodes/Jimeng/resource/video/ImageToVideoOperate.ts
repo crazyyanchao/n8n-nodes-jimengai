@@ -5,7 +5,7 @@ import { checkLinkType, buildUploadFileData } from '../../../help/utils/NodeUtil
 
 const ImageToVideoOperate: ResourceOperations = {
 	name: 'Image to Video',
-	value: 'video:imageToVideo',
+	value: 'imageToVideo',
 	description: 'Generate video from image and text prompt',
 	options: [
 		{
