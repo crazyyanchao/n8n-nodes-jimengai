@@ -43,7 +43,7 @@ ModuleLoadUtils.loadModules(__dirname, 'resource/*.js').forEach((resource) => {
 /* -------------------------------------------------------------------
  * Node Implementation
  * ---------------------------------------------------------------- */
-export class JimengAI implements INodeType {
+export class JimengAi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Jimeng AI',
 		name: 'jimengAi',
