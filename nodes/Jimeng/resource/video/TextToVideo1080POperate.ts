@@ -2,46 +2,44 @@ import { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { ResourceOperations } from '../../../help/type/IResource';
 import { JimengApiClient } from '../../utils/JimengApiClient';
 
-const TextToImageOperate: ResourceOperations = {
-	name: 'Text to Image 2.1',
-	value: 'textToImage21',
-	description: 'Generate image from text prompt using Jimeng 2.1 model',
+const TextToVideo1080POperate: ResourceOperations = {
+	name: 'Text to Video 1080P',
+	value: 'textToVideo1080P',
+	description: 'Generate 1080P video from text prompt using Jimeng 3.0 model',
 	options: [
 		{
 			displayName: 'Prompt',
 			name: 'prompt',
 			type: 'string',
 			default: '',
-			description: 'Text description for image generation',
+			description: 'Text description for video generation',
 			required: true,
 		},
 		{
-			displayName: 'Width',
-			name: 'width',
-			type: 'number',
-			default: 1024,
-			description: 'Image width. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-		},
-		{
-			displayName: 'Height',
-			name: 'height',
-			type: 'number',
-			default: 1024,
-			description: 'Image height. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-		},
-		{
-			displayName: 'Style',
-			name: 'style',
+			displayName: 'Aspect Ratio',
+			name: 'aspect_ratio',
 			type: 'options',
-			default: 'realistic',
+			default: '16:9',
 			options: [
-				{ name: 'Anime', value: 'anime' },
-				{ name: 'Oil Painting', value: 'oil_painting' },
-				{ name: 'Realistic', value: 'realistic' },
-				{ name: 'Sketch', value: 'sketch' },
-				{ name: 'Watercolor', value: 'watercolor' },
+				{ name: '1:1', value: '1:1' },
+				{ name: '16:9', value: '16:9' },
+				{ name: '21:9', value: '21:9' },
+				{ name: '3:4', value: '3:4' },
+				{ name: '4:3', value: '4:3' },
+				{ name: '9:16', value: '9:16' },
 			],
-			description: 'Image style for generation',
+			description: 'Video aspect ratio',
+		},
+		{
+			displayName: 'Duration (Seconds)',
+			name: 'duration',
+			type: 'number',
+			default: 5,
+			typeOptions: {
+				minValue: 1,
+				maxValue: 10,
+			},
+			description: 'Video duration in seconds (1-10)',
 		},
 		{
 			displayName: 'Seed',
@@ -75,9 +73,8 @@ const TextToImageOperate: ResourceOperations = {
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
-		const width = this.getNodeParameter('width', index) as number;
-		const height = this.getNodeParameter('height', index) as number;
-		const style = this.getNodeParameter('style', index) as string;
+		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
+		const duration = this.getNodeParameter('duration', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
 		const steps = this.getNodeParameter('steps', index) as number;
 		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
@@ -89,24 +86,24 @@ const TextToImageOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.textToImage21({
+		const data = await client.textToVideo1080P({
 			prompt,
-			width,
-			height,
-			style,
+			aspect_ratio: aspectRatio,
+			duration,
 			seed: seed === -1 ? undefined : seed,
 			steps,
 			guidance_scale: guidanceScale,
+			model: 'video-3.0-1080p',
 		});
 
 		return {
 			taskId: data.Result.TaskId,
 			status: data.Result.Status,
-			images: data.Result.Images || [],
+			videos: data.Result.Videos || [],
 			error: data.Result.Error,
 			requestId: data.ResponseMetadata.RequestId,
 		};
 	},
 };
 
-export default TextToImageOperate;
+export default TextToVideo1080POperate;

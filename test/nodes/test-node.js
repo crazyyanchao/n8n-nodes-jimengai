@@ -4,12 +4,14 @@ const { Jimeng } = require('../../dist/nodes/Jimeng/Jimeng.node');
 const testConfig = {
 	credentials: {
 		jimengCredentialsApi: {
-			sessionid: 'test-session-id'
+			accessKeyId: 'test-access-key-id',
+			secretAccessKey: 'test-secret-access-key',
+			region: 'cn-north-1'
 		}
 	},
 	nodeParameters: {
 		resource: 'video',
-		operation: 'video:textToVideo',
+		operation: 'textToVideo',
 		prompt: 'A beautiful sunset over the ocean',
 		model: 'video-S3.0',
 		videoAspectRatio: '16:9',

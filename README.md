@@ -28,45 +28,108 @@
    npm install n8n-nodes-jimengai
    ```
 
-2. Drag "Jimeng Image Generation" or "Jimeng Video Generation" nodes into the editor.
+2. Drag "Jimeng" node into the editor.
 
-3. Fill in the API Key, configure parameters, and start generating.
+3. Select resource type:
+   - **Image**: Image generation (Text-to-Image 2.1/3.0/3.1, Image-to-Image 3.0)
+   - **Video**: Video generation (Text-to-Video, Image-to-Video, Action Imitation, etc.)
 
-4. Can be combined with other nodes (such as: OpenAI, Notion, Telegram, Drive, etc.) to build complete automation workflows.
+4. Select specific operation:
+   - Image generation: Text-to-Image 2.1, Text-to-Image 3.0, Text-to-Image 3.1, Image-to-Image 3.0
+   - Video generation: Text-to-Video 720P/1080P, Image-to-Video 720P/1080P, Action Imitation, etc.
+
+5. Configure authentication information:
+   - AccessKeyID
+   - SecretAccessKey
+   - Region
+
+6. Fill in parameters and start generating.
+
+7. Can be combined with other nodes (such as: OpenAI, Notion, Telegram, Drive, etc.) to build complete automation workflows.
 
 ## Core Features
 
 ### ✨ Image Generation
-- **Text to Image**: Generate high-quality images from text prompts
-- **Image to Image**: Generate new images based on existing images and text prompts
+- **Text-to-Image 2.1**: Generate high-quality images from text descriptions
+- **Text-to-Image 3.0**: Use Jimeng 3.0 model for text-to-image generation
+- **Text-to-Image 3.1**: Use Jimeng 3.1 model for text-to-image generation
+- **Image-to-Image 3.0**: Generate new images based on existing images and text prompts
 - **Status Query**: Real-time query of image generation task status
-- **Multi-model Support**: jimeng-1.4, jimeng-2.0, jimeng-2.0-pro, jimeng-2.1, jimeng-3.0, jimeng-3.1, jimeng-xl-pro
+- **Multi-model Support**: jimeng-2.1, jimeng-3.0, jimeng-3.1
 - **Flexible Dimensions**: Support multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
 - **Async Processing**: Choose to wait for completion or process asynchronously
 
 ### 🎬 Video Generation
-- **Text to Video**: Generate creative videos through text descriptions
-- **Image to Video**: Generate videos based on image materials and text prompts
+- **Text-to-Video 720P**: Generate 720P videos from text descriptions
+- **Text-to-Video 1080P**: Generate 1080P videos from text descriptions
+- **Image-to-Video 720P-First Frame**: Generate 720P videos based on image first frame
+- **Image-to-Video 720P-First Last Frame**: Generate 720P videos based on image first and last frames
+- **Image-to-Video 720P-Camera Motion**: Generate 720P videos based on image and camera motion effects
+- **Image-to-Video 1080P-First Frame**: Generate 1080P videos based on image first frame
+- **Image-to-Video 1080P-First Last Frame**: Generate 1080P videos based on image first and last frames
+- **Video Generation 3.0 Pro**: Use Pro model to generate high-quality videos
+- **Action Imitation**: Generate videos based on reference video action imitation
 - **Status Query**: Real-time query of video generation task status
-- **Multi-model Support**: Video-S2.0, Video-S2.0-Pro, Video-S3.0, Video-S3.0-Pro
-- **Flexible Parameters**: Support multiple aspect ratios and duration settings (5s/10s)
+- **Flexible Parameters**: Support multiple aspect ratios and duration settings (1-10 seconds)
 - **Async Processing**: Choose to wait for completion or process asynchronously
+
+## Implemented API Interfaces
+
+### 📸 Image Generation Interfaces (4)
+| Interface Name | File Path | Model Version | Description |
+|---------------|-----------|---------------|-------------|
+| Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions |
+| Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation |
+| Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation |
+| Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts |
+
+### 🎬 Video Generation Interfaces (9)
+| Interface Name | File Path | Model Version | Description |
+|---------------|-----------|---------------|-------------|
+| Text-to-Video 720P | `TextToVideo720POperate.ts` | video-3.0-720p | Generate 720P videos from text descriptions |
+| Text-to-Video 1080P | `TextToVideo1080POperate.ts` | video-3.0-1080p | Generate 1080P videos from text descriptions |
+| Image-to-Video 720P-First Frame | `ImageToVideo720PFirstFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first frame |
+| Image-to-Video 720P-First Last Frame | `ImageToVideo720PFirstLastFrameOperate.ts` | video-3.0-720p | Generate 720P videos based on image first and last frames |
+| Image-to-Video 720P-Camera Motion | `ImageToVideo720PCameraMotionOperate.ts` | video-3.0-720p | Generate 720P videos based on image and camera motion effects |
+| Image-to-Video 1080P-First Frame | `ImageToVideo1080PFirstFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first frame |
+| Image-to-Video 1080P-First Last Frame | `ImageToVideo1080PFirstLastFrameOperate.ts` | video-3.0-1080p | Generate 1080P videos based on image first and last frames |
+| Video Generation 3.0 Pro | `VideoGeneration30ProOperate.ts` | video-3.0-pro | Use Pro model to generate high-quality videos |
+| Action Imitation | `ActionImitationOperate.ts` | action-imitation | Generate videos based on reference video action imitation |
+
+### 📊 Status Query Interfaces (2)
+| Interface Name | File Path | Description |
+|---------------|-----------|-------------|
+| Get Image Status | `GetImageStatusOperate.ts` | Query image generation task status |
+| Get Video Status | `GetVideoStatusOperate.ts` | Query video generation task status |
 
 ## Feature Overview
 
 ### 🎯 Core Operations
 | Feature Type | Operation Name | Description | Supported Models |
 |-------------|---------------|-------------|------------------|
-| **Image Generation** | Text to Image | Generate images from text descriptions | jimeng-1.4 to jimeng-xl-pro |
-| | Image to Image | Generate new images from existing images | Same as above |
+| **Image Generation** | Text-to-Image 2.1 | Generate images from text descriptions | jimeng-2.1 |
+| | Text-to-Image 3.0 | Use 3.0 model for text-to-image generation | jimeng-3.0 |
+| | Text-to-Image 3.1 | Use 3.1 model for text-to-image generation | jimeng-3.1 |
+| | Image-to-Image 3.0 | Generate new images from existing images and text prompts | jimeng-3.0 |
 | | Get Image Status | Query image generation task status | - |
-| **Video Generation** | Text to Video | Generate videos from text descriptions | Video-S2.0 to Video-S3.0-Pro |
-| | Image to Video | Generate videos from images | Same as above |
+| **Video Generation** | Text-to-Video 720P | Generate 720P videos from text descriptions | video-3.0-720p |
+| | Text-to-Video 1080P | Generate 1080P videos from text descriptions | video-3.0-1080p |
+| | Image-to-Video 720P-First Frame | Generate 720P videos based on image first frame | video-3.0-720p |
+| | Image-to-Video 720P-First Last Frame | Generate 720P videos based on image first and last frames | video-3.0-720p |
+| | Image-to-Video 720P-Camera Motion | Generate 720P videos based on image and camera motion effects | video-3.0-720p |
+| | Image-to-Video 1080P-First Frame | Generate 1080P videos based on image first frame | video-3.0-1080p |
+| | Image-to-Video 1080P-First Last Frame | Generate 1080P videos based on image first and last frames | video-3.0-1080p |
+| | Video Generation 3.0 Pro | Use Pro model to generate high-quality videos | video-3.0-pro |
+| | Action Imitation | Generate videos based on reference video action imitation | action-imitation |
 | | Get Video Status | Query video generation task status | - |
 
 ### ⚙️ Parameter Configuration
-- **Image Dimensions**: Support custom width and height, multiple aspect ratios
-- **Video Duration**: 5 seconds or 10 seconds (depending on model support)
+- **Image Dimensions**: Support custom width and height, multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
+- **Video Duration**: 1-10 seconds adjustable (depending on model support)
+- **Video Resolution**: 720P, 1080P, custom resolution (Pro model)
+- **Image Style**: Anime, oil painting, realistic, sketch, watercolor, etc.
+- **Camera Motion**: Pan, tilt, zoom and other camera motion methods
+- **Generation Parameters**: Steps, guidance scale, random seed, etc.
 - **Generation Mode**: Synchronous wait or asynchronous processing
 - **Model Selection**: Multiple Jimeng AI models available
 
@@ -100,21 +163,22 @@
 
 ## Authentication
 
-### 🔐 Using `sessionid` from Jimeng Cookie
+### 🔐 Using Jimeng API Authentication Information
 
-This plugin authenticates using the `sessionid` from the browser Cookie after logging into the [Jimeng official website](https://jimeng.jianying.com/).
+This plugin authenticates using Jimeng API's `AccessKeyID` and `SecretAccessKey`.
 
-#### ✅ How to get `sessionid`:
+#### ✅ How to get authentication information:
 
-1. Open browser and visit [https://jimeng.jianying.com/](https://jimeng.jianying.com/) and log in to your account;
-2. Press `F12` to open developer tools, switch to **Application** or **Storage**;
-3. Find the Cookie under the `jimengai.com` domain, copy the `sessionid` value;
-4. Paste the `sessionid` in the n8n node configuration to complete authorization.
+1. Visit [Jimeng official website](https://jimeng.jianying.com/) and log in to your account;
+2. Go to API management page, create or get API keys;
+3. Copy the `AccessKeyID` and `SecretAccessKey` values;
+4. Fill in the authentication information in n8n node configuration to complete authorization.
 
 #### 🔒 Security Notes
-- `sessionid` has a time limit and needs to be updated regularly
 - Please keep your authentication information secure and avoid leakage
+- It is recommended to rotate API keys regularly to ensure security
 - It is recommended to verify authentication validity in a test environment first
+- Authentication information has a time limit and needs to be updated regularly
 
 ## Compatibility
 

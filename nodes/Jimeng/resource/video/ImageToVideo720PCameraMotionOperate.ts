@@ -3,17 +3,17 @@ import { ResourceOperations } from '../../../help/type/IResource';
 import { JimengApiClient } from '../../utils/JimengApiClient';
 import { checkLinkType, buildUploadFileData } from '../../../help/utils/NodeUtils';
 
-const ImageToImageOperate: ResourceOperations = {
-	name: 'Image to Image 3.0',
-	value: 'imageToImage30',
-	description: 'Generate image from image and text prompt using Jimeng 3.0 model',
+const ImageToVideo720PCameraMotionOperate: ResourceOperations = {
+	name: 'Image to Video 720P Camera Motion',
+	value: 'imageToVideo720PCameraMotion',
+	description: 'Generate 720P video from image with camera motion using Jimeng 3.0 model',
 	options: [
 		{
 			displayName: 'Prompt',
 			name: 'prompt',
 			type: 'string',
 			default: '',
-			description: 'Text description for image generation',
+			description: 'Text description for video generation',
 			required: true,
 		},
 		{
@@ -25,61 +25,47 @@ const ImageToImageOperate: ResourceOperations = {
 			required: true,
 		},
 		{
-			displayName: 'Custom Width/Height',
-			name: 'customWH',
-			type: 'boolean',
-			default: false,
-			description: 'Whether to use custom width and height instead of image dimensions',
-		},
-		{
-			displayName: 'Width',
-			name: 'width',
-			type: 'number',
-			default: 1024,
-			displayOptions: {
-				show: {
-					customWH: [true],
-				},
-			},
-			description: 'Image width. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-		},
-		{
-			displayName: 'Height',
-			name: 'height',
-			type: 'number',
-			default: 1024,
-			displayOptions: {
-				show: {
-					customWH: [true],
-				},
-			},
-			description: 'Image height. Common aspect ratios: 21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16.',
-		},
-		{
-			displayName: 'Strength',
-			name: 'strength',
-			type: 'number',
-			required: true,
-			default: 0.5,
-			typeOptions: {
-				minValue: 0,
-				maxValue: 1,
-			},
-			description: 'Strength of reference to original image (0-1)',
-		},
-		{
-			displayName: 'Style',
-			name: 'style',
+			displayName: 'Camera Motion',
+			name: 'camera_motion',
 			type: 'options',
-			default: 'realistic',
+			default: 'zoom_in',
 			options: [
-				{ name: 'Anime', value: 'anime' },
-				{ name: 'Oil Painting', value: 'oil_painting' },
-				{ name: 'Realistic', value: 'realistic' },
-				{ name: 'Sketch', value: 'sketch' },
-				{ name: 'Watercolor', value: 'watercolor' },
+				{ name: 'Pan Down', value: 'pan_down' },
+				{ name: 'Pan Left', value: 'pan_left' },
+				{ name: 'Pan Right', value: 'pan_right' },
+				{ name: 'Pan Up', value: 'pan_up' },
+				{ name: 'Tilt Down', value: 'tilt_down' },
+				{ name: 'Tilt Up', value: 'tilt_up' },
+				{ name: 'Zoom In', value: 'zoom_in' },
+				{ name: 'Zoom Out', value: 'zoom_out' },
 			],
-			description: 'Image style for generation',
+			description: 'Camera motion type',
+		},
+		{
+			displayName: 'Aspect Ratio',
+			name: 'aspect_ratio',
+			type: 'options',
+			default: '16:9',
+			options: [
+				{ name: '1:1', value: '1:1' },
+				{ name: '16:9', value: '16:9' },
+				{ name: '21:9', value: '21:9' },
+				{ name: '3:4', value: '3:4' },
+				{ name: '4:3', value: '4:3' },
+				{ name: '9:16', value: '9:16' },
+			],
+			description: 'Video aspect ratio',
+		},
+		{
+			displayName: 'Duration (Seconds)',
+			name: 'duration',
+			type: 'number',
+			default: 5,
+			typeOptions: {
+				minValue: 1,
+				maxValue: 10,
+			},
+			description: 'Video duration in seconds (1-10)',
 		},
 		{
 			displayName: 'Seed',
@@ -113,20 +99,14 @@ const ImageToImageOperate: ResourceOperations = {
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
-		const strength = this.getNodeParameter('strength', index) as number;
 		let imageUrl = this.getNodeParameter('imageUrl', index) as string;
-		const style = this.getNodeParameter('style', index) as string;
+		const cameraMotion = this.getNodeParameter('camera_motion', index) as string;
+		const aspectRatio = this.getNodeParameter('aspect_ratio', index) as string;
+		const duration = this.getNodeParameter('duration', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
 		const steps = this.getNodeParameter('steps', index) as number;
 		const guidanceScale = this.getNodeParameter('guidance_scale', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
-
-		let width = undefined;
-		let height = undefined;
-		if (this.getNodeParameter('customWH', index)) {
-			width = this.getNodeParameter('width', index) as number;
-			height = this.getNodeParameter('height', index) as number;
-		}
 
 		// Handle file upload if needed
 		const linkType = checkLinkType(imageUrl);
@@ -141,26 +121,26 @@ const ImageToImageOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.imageToImage30({
+		const data = await client.imageToVideo720PCameraMotion({
 			prompt,
 			image_url: imageUrl,
-			width,
-			height,
-			strength,
-			style,
+			camera_motion: cameraMotion,
+			aspect_ratio: aspectRatio,
+			duration,
 			seed: seed === -1 ? undefined : seed,
 			steps,
 			guidance_scale: guidanceScale,
+			model: 'video-3.0-720p',
 		});
 
 		return {
 			taskId: data.Result.TaskId,
 			status: data.Result.Status,
-			images: data.Result.Images || [],
+			videos: data.Result.Videos || [],
 			error: data.Result.Error,
 			requestId: data.ResponseMetadata.RequestId,
 		};
 	},
 };
 
-export default ImageToImageOperate;
+export default ImageToVideo720PCameraMotionOperate;

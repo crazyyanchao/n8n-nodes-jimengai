@@ -2,10 +2,10 @@ import { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { ResourceOperations } from '../../../help/type/IResource';
 import { JimengApiClient } from '../../utils/JimengApiClient';
 
-const TextToImageOperate: ResourceOperations = {
-	name: 'Text to Image 2.1',
-	value: 'textToImage21',
-	description: 'Generate image from text prompt using Jimeng 2.1 model',
+const TextToImage30Operate: ResourceOperations = {
+	name: 'Text to Image 3.0',
+	value: 'textToImage30',
+	description: 'Generate image from text prompt using Jimeng 3.0 model',
 	options: [
 		{
 			displayName: 'Prompt',
@@ -89,7 +89,7 @@ const TextToImageOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		const data = await client.textToImage21({
+		const data = await client.textToImage30({
 			prompt,
 			width,
 			height,
@@ -109,4 +109,4 @@ const TextToImageOperate: ResourceOperations = {
 	},
 };
 
-export default TextToImageOperate;
+export default TextToImage30Operate;

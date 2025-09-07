@@ -69,7 +69,12 @@ const TextToVideoOperate: ResourceOperations = {
 			durationMs = 5000;
 		}
 
-		const client = new JimengApiClient({ refreshToken: String(credentials.sessionid) });
+		const client = new JimengApiClient({
+			accessKeyId: credentials.accessKeyId as string,
+			secretAccessKey: credentials.secretAccessKey as string,
+			region: credentials.region as string,
+			refreshToken: String(credentials.sessionid),
+		});
 		const data = await client.generateVideo(
 			prompt,
 			'',

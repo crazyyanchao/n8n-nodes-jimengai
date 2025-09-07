@@ -5,29 +5,35 @@ import { JimengApiClient } from '../../utils/JimengApiClient';
 const GetVideoStatusOperate: ResourceOperations = {
 	name: 'Get Video Status',
 	value: 'getVideoStatus',
-	description: 'Get the status of video generation',
+	description: 'Get the status of video generation task',
 	options: [
 		{
-			displayName: 'History ID',
-			name: 'historyId',
+			displayName: 'Task ID',
+			name: 'taskId',
 			type: 'string',
 			default: '',
-			description: 'History ID of the video generation task',
+			description: 'Task ID of the video generation task',
 			required: true,
 		},
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
-		const historyId = this.getNodeParameter('historyId', index) as string;
+		const taskId = this.getNodeParameter('taskId', index) as string;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
-		const client = new JimengApiClient({ refreshToken: String(credentials.sessionid) });
-		const data = await client.getVideoStatus(historyId);
+		const client = new JimengApiClient({
+			accessKeyId: credentials.accessKeyId as string,
+			secretAccessKey: credentials.secretAccessKey as string,
+			region: credentials.region as string,
+		});
+
+		const data = await client.getVideoStatus(taskId);
 
 		return {
-			list: data.videoInfoList || [],
-			status: data.status,
-			historyId: data.historyId,
-			failCode: data.failCode || '',
+			taskId: data.Result.TaskId,
+			status: data.Result.Status,
+			videos: data.Result.Videos || [],
+			error: data.Result.Error,
+			requestId: data.ResponseMetadata.RequestId,
 		};
 	},
 };
