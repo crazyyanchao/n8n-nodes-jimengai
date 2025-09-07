@@ -1,22 +1,33 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-jimengai",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n custom node for Jimeng AI image and video generation",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "n8n",
+    "n8n-community-node",
+    "jimeng",
+    "jimeng-ai",
+    "image-generation",
+    "video-generation",
+    "ai",
+    "artificial-intelligence"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/crazyyanchao/n8n-nodes-jimengai",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Tony.Ma",
+    "email": "yanchaoma@foxmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/crazyyanchao/n8n-nodes-jimengai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crazyyanchao/n8n-nodes-jimengai/issues"
   },
   "engines": {
-    "node": ">=20.15"
+    "node": ">=22.16"
   },
   "main": "index.js",
   "scripts": {
@@ -33,23 +44,33 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/jimengCredentialsApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/JimengAI/JimengAI.node.js"
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "~8.32.0",
-    "eslint": "^8.57.0",
+    "@types/node": "^24.2.1",
+    "@types/uuid": "^9.0.0",
+    "@typescript-eslint/parser": "~8.36",
+    "eslint": "^8.57.1",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
-    "gulp": "^5.0.0",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "glob": "^11.0.3",
+    "gulp": "^5.0.1",
+    "n8n-workflow": "1.103.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3",
+    "xml-js": "^1.6.11"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "crc-full": "^1.0.0",
+    "sharp": "^0.33.0",
+    "uuid": "^9.0.0"
   }
 }
