@@ -49,14 +49,23 @@ function processVideoOutput(
 	index: number,
 	executeFunctions: IExecuteFunctions
 ): IDataObject {
+	executeFunctions.logger.info('Processing video output', {
+		outputFormat: outputFormat,
+		format: format,
+		videoSize: videoBuffer.length,
+		index: index
+	});
+
 	switch (outputFormat) {
 		case 'base64':
+			executeFunctions.logger.info('Processing base64 output format');
 			return {
 				...result,
 				videoData: videoBuffer.toString('base64'),
 			};
 
 		case 'buffer':
+			executeFunctions.logger.info('Processing buffer output format');
 			return {
 				...result,
 				videoBuffer: {
@@ -66,6 +75,7 @@ function processVideoOutput(
 			};
 
 		case 'binary':
+			executeFunctions.logger.info('Processing binary output format');
 			const outputBinary = 'video';
 			const outputFileName = `generated_video.${format}`;
 			const fileSize = videoBuffer.length;
@@ -86,6 +96,7 @@ function processVideoOutput(
 			};
 
 		case 'file':
+			executeFunctions.logger.info('Processing file output format');
 			const outputFilePath = executeFunctions.getNodeParameter('outputFilePath', index) as string;
 
 			executeFunctions.logger.info('Starting file output process', {
@@ -151,6 +162,7 @@ function processVideoOutput(
 			}
 
 		case 'json':
+			executeFunctions.logger.info('Processing json output format');
 			// Return complete JSON with video data as base64
 			return {
 				...result,
@@ -159,6 +171,7 @@ function processVideoOutput(
 			};
 
 		default:
+			executeFunctions.logger.info('Processing default output format', { outputFormat });
 			return result;
 	}
 }
@@ -376,8 +389,16 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			});
 		}
 
+		this.logger.info('Starting video generation result processing', {
+			taskId: taskId,
+			outputFormat: outputFormat,
+			enableCache: enableCache,
+			videoFormat: videoFormat
+		});
+
 		// Check cache if enabled and not URL only format
 		if (enableCache && outputFormat !== 'url') {
+			this.logger.info('Checking cache for video file', { enableCache, outputFormat });
 			// Convert cache directory to absolute path
 			const absoluteCacheDir = path.isAbsolute(cacheDir)
 				? cacheDir
@@ -400,11 +421,23 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 				};
 
 				return processVideoOutput(result, cachedVideoData, outputFormat, videoFormat, index, this);
+			} else {
+				this.logger.info('No cached file found, proceeding with API call', { cachedFilePath });
 			}
+		} else {
+			this.logger.info('Cache disabled or URL format, proceeding with API call', { enableCache, outputFormat });
 		}
 
 		try {
+			this.logger.info('Calling API to get video generation result', { taskId });
 			const data = await client.getVideoGeneration30ProResult(taskId);
+
+			this.logger.info('API response received', {
+				code: data.code,
+				status: data.status,
+				message: data.message,
+				hasVideoUrl: !!(data.videoUrl || data.data?.video_url)
+			});
 
 			// Check if the response indicates an error
 			if (data.code !== 10000) {
@@ -423,6 +456,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 
 			// If task is not completed yet, return status without video data
 			if (status !== 'completed' && status !== 'success' && status !== 'done') {
+				this.logger.info('Task not completed yet, returning status', { status, outputFormat });
 				return {
 					taskId: taskId,
 					status: status || 'unknown',
@@ -439,8 +473,15 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 				throw new Error('Video URL not found in the response. The task may not be completed yet.');
 			}
 
+			this.logger.info('Task completed, processing video output', {
+				videoUrl: videoUrl,
+				outputFormat: outputFormat,
+				videoFormat: videoFormat
+			});
+
 			// If URL only format, return without downloading
 			if (outputFormat === 'url') {
+				this.logger.info('Returning URL only format');
 				return {
 					taskId: taskId,
 					status: status || 'completed',
@@ -455,8 +496,15 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			this.logger.info('Downloading video from URL', { videoUrl });
 			const videoBuffer = await downloadVideo(videoUrl);
 
+			this.logger.info('Video downloaded successfully', {
+				videoSize: videoBuffer.length,
+				outputFormat: outputFormat,
+				videoFormat: videoFormat
+			});
+
 			// Save to cache if enabled
 			if (enableCache && videoBuffer.length > 0) {
+				this.logger.info('Saving video to cache', { enableCache, videoSize: videoBuffer.length });
 				// Convert cache directory to absolute path
 				const absoluteCacheDir = path.isAbsolute(cacheDir)
 					? cacheDir
@@ -470,6 +518,8 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 					fileSize: videoBuffer.length,
 					cacheDir: absoluteCacheDir
 				});
+			} else {
+				this.logger.info('Skipping cache save', { enableCache, videoSize: videoBuffer.length });
 			}
 
 			const result: IDataObject = {
@@ -483,8 +533,21 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 				cached: false,
 			};
 
+			this.logger.info('Processing video output with format', {
+				outputFormat: outputFormat,
+				videoFormat: videoFormat,
+				videoSize: videoBuffer.length
+			});
+
 			// Process output based on format
-			return processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this);
+			const processedResult = processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this);
+
+			this.logger.info('Video output processing completed', {
+				outputFormat: outputFormat,
+				resultKeys: Object.keys(processedResult)
+			});
+
+			return processedResult;
 
 		} catch (error: any) {
 			// Enhanced error handling with more context
