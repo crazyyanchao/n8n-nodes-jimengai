@@ -92,30 +92,25 @@ function processVideoOutput(
 			}
 
 			try {
-				// Convert to absolute path if relative
-				const absoluteFilePath = path.isAbsolute(outputFilePath)
-					? outputFilePath
-					: path.resolve(process.cwd(), outputFilePath);
-
 				// Ensure directory exists
-				const dir = path.dirname(absoluteFilePath);
+				const dir = path.dirname(outputFilePath);
 				if (!fs.existsSync(dir)) {
 					fs.mkdirSync(dir, { recursive: true });
 				}
 
 				// Write file
-				fs.writeFileSync(absoluteFilePath, videoBuffer);
+				fs.writeFileSync(outputFilePath, videoBuffer);
 
 				executeFunctions.logger.info('Video file saved successfully', {
-					filePath: absoluteFilePath,
+					filePath: outputFilePath,
 					fileSize: videoBuffer.length
 				});
 
 				return {
 					...result,
-					filePath: absoluteFilePath,
+					filePath: outputFilePath,
 					fileSize: videoBuffer.length,
-					message: `Video saved to: ${absoluteFilePath}`,
+					message: `Video saved to: ${outputFilePath}`,
 				};
 			} catch (fileError: any) {
 				executeFunctions.logger.error('Failed to save video file', {
@@ -188,7 +183,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			name: 'outputFilePath',
 			type: 'string',
 			default: './output/video.mp4',
-			description: 'File path to save the generated video (relative to n8n working directory, only used when Output Format is "Video File Path")',
+			description: 'File path to save the generated video (only used when Output Format is "Video File Path")',
 			displayOptions: {
 				show: {
 					outputFormat: ['file'],
