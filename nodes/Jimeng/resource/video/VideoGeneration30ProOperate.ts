@@ -49,13 +49,6 @@ const VideoGeneration30ProOperate: ResourceOperations = {
 			description: 'Total number of frames (121 for 5s, 241 for 10s)',
 		},
 		{
-			displayName: 'Image URL',
-			name: 'imageUrl',
-			type: 'string',
-			default: '',
-			description: 'URL of the input image for image-to-video generation (optional)',
-		},
-		{
 			displayName: 'Seed',
 			name: 'seed',
 			type: 'number',
@@ -90,6 +83,8 @@ const VideoGeneration30ProOperate: ResourceOperations = {
 			taskId: submitData.task_id,
 			status: 'submitted',
 			message: submitData.message,
+			prompt: prompt,
+			imageUrl: imageUrl
 		};
 	},
 };
