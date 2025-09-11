@@ -455,8 +455,16 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			}
 
 			// If task is not completed yet, return status without video data
-			if (status !== 'completed' && status !== 'success' && status !== 'done') {
-				this.logger.info('Task not completed yet, returning status', { status, outputFormat });
+			// Check both string and numeric status values
+			const isCompleted = status === 'completed' || status === 'success' || status === 'done' ||
+							   data.code === 10000 || data.status === 10000;
+
+			if (!isCompleted) {
+				this.logger.info('Task not completed yet, returning status', {
+					status,
+					code: data.code,
+					outputFormat
+				});
 				return {
 					taskId: taskId,
 					status: status || 'unknown',
