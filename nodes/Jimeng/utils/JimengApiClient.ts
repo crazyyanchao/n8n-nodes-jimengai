@@ -754,20 +754,38 @@ export class JimengApiClient {
 
 	async getVideoGeneration30ProResult(taskId: string): Promise<AsyncVideoResponse> {
 		try {
-			return await this.makeRequest('CVSync2AsyncGetResult', {
+			const response = await this.makeRequest('CVSync2AsyncGetResult', {
 				req_key: 'jimeng_ti2v_v30_pro',
 				task_id: taskId,
 			});
+
+			// Additional validation for the response
+			if (!response) {
+				throw new Error(`Empty response received for task ${taskId}`);
+			}
+
+			// Log the response for debugging (in development)
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Video Generation 3.0 Pro Result Response:', JSON.stringify(response, null, 2));
+			}
+
+			return response;
 		} catch (error: any) {
-			// Provide more detailed error information
-			if (error.message.includes('Internal Error')) {
-				throw new Error(`Failed to get Video Generation 3.0 Pro result: Server internal error - Task ID: ${taskId}. This may be due to the task still being processed or server internal error, please try again later.`);
+			// Enhanced error handling with more specific messages
+			if (error.message.includes('Server internal error') || error.message.includes('Internal Error')) {
+				throw new Error(`Server internal error, please try again later`);
 			}
 			if (error.message.includes('Task not found')) {
-				throw new Error(`Failed to get Video Generation 3.0 Pro result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+				throw new Error(`Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
 			}
 			if (error.message.includes('Task has expired')) {
-				throw new Error(`Failed to get Video Generation 3.0 Pro result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+				throw new Error(`Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			if (error.message.includes('QPS limit exceeded')) {
+				throw new Error(`Request rate limit exceeded. Please wait a moment and try again.`);
+			}
+			if (error.message.includes('Concurrency limit exceeded')) {
+				throw new Error(`Concurrent request limit exceeded. Please wait a moment and try again.`);
 			}
 			throw error;
 		}
@@ -902,6 +920,13 @@ export class JimengApiClient {
 				// Handle specific internal error codes
 				if (response.data.code === 50500 || response.data.code === 50501) {
 					throw new Error(`Server internal error, please try again later`);
+				}
+				// Handle other specific error codes
+				if (response.data.code === 50429) {
+					throw new Error(`Request rate limit exceeded, please try again later`);
+				}
+				if (response.data.code === 50430) {
+					throw new Error(`Concurrent request limit exceeded, please try again later`);
 				}
 				throw new Error(errorMessage);
 			}
