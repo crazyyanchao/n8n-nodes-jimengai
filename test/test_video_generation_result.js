@@ -69,13 +69,17 @@ async function downloadVideo(videoUrl) {
 }
 
 // 处理视频输出
-function processVideoOutput(result, videoBuffer, outputFormat, format, index, executeFunctions, outputFilePath) {
+function processVideoOutput(result, videoBuffer, outputFormat, format, index, executeFunctions) {
     console.log(`处理视频输出，格式: ${outputFormat}`);
 
     if (outputFormat === 'file') {
-        if (!outputFilePath) {
-            throw new Error('Output file path is required for file output format');
-        }
+        const outputFilePath = executeFunctions.getNodeParameter('outputFilePath', index);
+
+        console.log('开始文件输出处理', {
+            originalPath: outputFilePath,
+            videoSize: videoBuffer.length,
+            format: format
+        });
 
         try {
             // 转换为绝对路径
@@ -83,18 +87,38 @@ function processVideoOutput(result, videoBuffer, outputFormat, format, index, ex
                 ? outputFilePath
                 : path.resolve(process.cwd(), outputFilePath);
 
+            console.log('路径解析完成', {
+                originalPath: outputFilePath,
+                absolutePath: absoluteFilePath,
+                isAbsolute: path.isAbsolute(outputFilePath),
+                workingDirectory: process.cwd()
+            });
+
             // 确保目录存在
             const dir = path.dirname(absoluteFilePath);
             if (!fs.existsSync(dir)) {
+                console.log('创建目录:', dir);
                 fs.mkdirSync(dir, { recursive: true });
+                console.log('目录创建成功:', dir);
+            } else {
+                console.log('目录已存在:', dir);
             }
 
             // 写入文件
-            fs.writeFileSync(absoluteFilePath, videoBuffer);
-
-            executeFunctions.logger.info('视频文件保存成功', {
+            console.log('写入视频文件', {
                 filePath: absoluteFilePath,
                 fileSize: videoBuffer.length
+            });
+
+            fs.writeFileSync(absoluteFilePath, videoBuffer);
+
+            // 验证文件是否写入成功
+            const stats = fs.statSync(absoluteFilePath);
+            console.log('视频文件保存成功', {
+                filePath: absoluteFilePath,
+                fileSize: videoBuffer.length,
+                actualFileSize: stats.size,
+                fileExists: fs.existsSync(absoluteFilePath)
             });
 
             return {
@@ -104,9 +128,11 @@ function processVideoOutput(result, videoBuffer, outputFormat, format, index, ex
                 message: `视频已保存到: ${absoluteFilePath}`,
             };
         } catch (fileError) {
-            executeFunctions.logger.error('保存视频文件失败', {
-                filePath: outputFilePath,
-                error: fileError.message
+            console.error('保存视频文件失败', {
+                originalPath: outputFilePath,
+                error: fileError.message,
+                stack: fileError.stack,
+                videoSize: videoBuffer.length
             });
             throw new Error(`Failed to save video file: ${fileError.message}`);
         }
@@ -173,7 +199,7 @@ async function testVideoGenerationResult() {
         };
 
         // 处理输出
-        const finalResult = processVideoOutput(result, videoBuffer, outputFormat, videoFormat, 0, executeFunctions, outputFilePath);
+        const finalResult = processVideoOutput(result, videoBuffer, outputFormat, videoFormat, 0, executeFunctions);
 
         console.log('最终结果:', JSON.stringify(finalResult, null, 2));
         console.log('✅ 测试成功!');

@@ -47,8 +47,7 @@ function processVideoOutput(
 	outputFormat: string,
 	format: string,
 	index: number,
-	executeFunctions: IExecuteFunctions,
-	outputFilePath?: string
+	executeFunctions: IExecuteFunctions
 ): IDataObject {
 	switch (outputFormat) {
 		case 'base64':
@@ -87,35 +86,66 @@ function processVideoOutput(
 			};
 
 		case 'file':
-			if (!outputFilePath) {
-				throw new Error('Output file path is required for file output format');
-			}
+			const outputFilePath = executeFunctions.getNodeParameter('outputFilePath', index) as string;
+
+			executeFunctions.logger.info('Starting file output process', {
+				originalPath: outputFilePath,
+				videoSize: videoBuffer.length,
+				format: format
+			});
 
 			try {
+				// Convert to absolute path if it's relative
+				const absoluteFilePath = path.isAbsolute(outputFilePath)
+					? outputFilePath
+					: path.resolve(process.cwd(), outputFilePath);
+
+				executeFunctions.logger.info('Path resolution completed', {
+					originalPath: outputFilePath,
+					absolutePath: absoluteFilePath,
+					isAbsolute: path.isAbsolute(outputFilePath),
+					workingDirectory: process.cwd()
+				});
+
 				// Ensure directory exists
-				const dir = path.dirname(outputFilePath);
+				const dir = path.dirname(absoluteFilePath);
 				if (!fs.existsSync(dir)) {
+					executeFunctions.logger.info('Creating directory', { directory: dir });
 					fs.mkdirSync(dir, { recursive: true });
+					executeFunctions.logger.info('Directory created successfully', { directory: dir });
+				} else {
+					executeFunctions.logger.info('Directory already exists', { directory: dir });
 				}
 
 				// Write file
-				fs.writeFileSync(outputFilePath, videoBuffer);
-
-				executeFunctions.logger.info('Video file saved successfully', {
-					filePath: outputFilePath,
+				executeFunctions.logger.info('Writing video file', {
+					filePath: absoluteFilePath,
 					fileSize: videoBuffer.length
+				});
+
+				fs.writeFileSync(absoluteFilePath, videoBuffer);
+
+				// Verify file was written
+				const stats = fs.statSync(absoluteFilePath);
+				executeFunctions.logger.info('Video file saved successfully', {
+					filePath: absoluteFilePath,
+					fileSize: videoBuffer.length,
+					actualFileSize: stats.size,
+					fileExists: fs.existsSync(absoluteFilePath)
 				});
 
 				return {
 					...result,
-					filePath: outputFilePath,
+					filePath: absoluteFilePath,
 					fileSize: videoBuffer.length,
-					message: `Video saved to: ${outputFilePath}`,
+					message: `Video saved to: ${absoluteFilePath}`,
 				};
 			} catch (fileError: any) {
 				executeFunctions.logger.error('Failed to save video file', {
-					filePath: outputFilePath,
-					error: fileError.message
+					originalPath: outputFilePath,
+					error: fileError.message,
+					stack: fileError.stack,
+					videoSize: videoBuffer.length
 				});
 				throw new Error(`Failed to save video file: ${fileError.message}`);
 			}
@@ -295,11 +325,6 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 		// Only get cacheDir when enableCache is true
 		const cacheDir = enableCache ? (this.getNodeParameter('cacheDir', index) as string) : './cache/video';
 
-		// Only get outputFilePath when outputFormat is 'file'
-		let outputFilePath: string | undefined;
-		if (outputFormat === 'file') {
-			outputFilePath = this.getNodeParameter('outputFilePath', index) as string;
-		}
 
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
@@ -374,7 +399,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 					cacheFilePath: cachedFilePath,
 				};
 
-				return processVideoOutput(result, cachedVideoData, outputFormat, videoFormat, index, this, outputFilePath);
+				return processVideoOutput(result, cachedVideoData, outputFormat, videoFormat, index, this);
 			}
 		}
 
@@ -459,7 +484,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			};
 
 			// Process output based on format
-			return processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this, outputFilePath);
+			return processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this);
 
 		} catch (error: any) {
 			// Enhanced error handling with more context
