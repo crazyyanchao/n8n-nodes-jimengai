@@ -110,11 +110,11 @@ const ImageToVideo720PCameraMotionOperate: ResourceOperations = {
 		});
 
 		return {
-			taskId: data.data.task_id,
-			status: data.data.status,
-			videoUrl: data.data.video_url,
+			taskId: data.data?.task_id || data.taskId,
+			status: data.data?.status || data.status,
+			videoUrl: data.data?.video_url || data.videoUrl,
 			error: data.message,
-			requestId: data.request_id,
+			requestId: data.request_id || data.requestId,
 		};
 	},
 };
