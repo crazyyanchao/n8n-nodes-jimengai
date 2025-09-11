@@ -13,8 +13,8 @@ function generateMD5(taskId: string, additionalParams: any): string {
 }
 
 // Helper function to check if cached file exists
-function getCachedFilePath(md5: string, format: string, cacheDir: string): string {
-	return path.join(cacheDir, `${md5}.${format}`);
+function getCachedFilePath(cacheKey: string, format: string, cacheDir: string): string {
+	return path.join(cacheDir, `${cacheKey}.${format}`);
 }
 
 // Helper function to ensure cache directory exists
@@ -44,7 +44,8 @@ function processVideoOutput(
 	outputFormat: string,
 	format: string,
 	index: number,
-	executeFunctions: IExecuteFunctions
+	executeFunctions: IExecuteFunctions,
+	outputFilePath?: string
 ): IDataObject {
 	switch (outputFormat) {
 		case 'base64':
@@ -83,20 +84,35 @@ function processVideoOutput(
 			};
 
 		case 'file':
-			const outputFilePath = executeFunctions.getNodeParameter('outputFilePath', index) as string;
+			if (!outputFilePath) {
+				throw new Error('Output file path is required for file output format');
+			}
 
 			try {
+				// Convert to absolute path if relative
+				const absoluteFilePath = path.isAbsolute(outputFilePath)
+					? outputFilePath
+					: path.resolve(process.cwd(), outputFilePath);
+
 				// Ensure directory exists
-				const dir = path.dirname(outputFilePath);
+				const dir = path.dirname(absoluteFilePath);
 				if (!fs.existsSync(dir)) {
 					fs.mkdirSync(dir, { recursive: true });
 				}
 
 				// Write file
-				fs.writeFileSync(outputFilePath, videoBuffer);
+				fs.writeFileSync(absoluteFilePath, videoBuffer);
+
+				executeFunctions.logger.info('Video file saved successfully', {
+					filePath: absoluteFilePath,
+					fileSize: videoBuffer.length
+				});
+
 				return {
 					...result,
-					filePath: outputFilePath,
+					filePath: absoluteFilePath,
+					fileSize: videoBuffer.length,
+					message: `Video saved to: ${absoluteFilePath}`,
 				};
 			} catch (fileError: any) {
 				executeFunctions.logger.error('Failed to save video file', {
@@ -168,8 +184,8 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			displayName: 'Output File Path',
 			name: 'outputFilePath',
 			type: 'string',
-			default: './generated_video.mp4',
-			description: 'File path to save the generated video (only used when Output Format is "Video File Path")',
+			default: './output/video.mp4',
+			description: 'File path to save the generated video (relative to n8n working directory, only used when Output Format is "Video File Path")',
 			displayOptions: {
 				show: {
 					outputFormat: ['file'],
@@ -188,7 +204,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			name: 'cacheDir',
 			type: 'string',
 			default: './cache/video',
-			description: 'Directory to store cached video files',
+			description: 'Directory to store cached video files (relative to n8n working directory)',
 			displayOptions: {
 				show: {
 					enableCache: [true],
@@ -196,11 +212,11 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			},
 		},
 		{
-			displayName: 'Additional Cache Parameters',
-			name: 'cacheParams',
+			displayName: 'Cache Key Settings',
+			name: 'cacheKeySettings',
 			type: 'collection',
 			default: {},
-			description: 'Additional parameters to include in cache key generation',
+			description: 'Settings for cache key generation',
 			displayOptions: {
 				show: {
 					enableCache: [true],
@@ -208,11 +224,59 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			},
 			options: [
 				{
+					displayName: 'Cache Key Mode',
+					name: 'cacheKeyMode',
+					type: 'options',
+					options: [
+						{
+							name: 'Auto Generate (Task ID + Parameters)',
+							value: 'auto',
+							description: 'Automatically generate cache key based on task ID and parameters',
+						},
+						{
+							name: 'Custom String',
+							value: 'custom',
+							description: 'Use a custom string as cache key',
+						},
+					],
+					default: 'auto',
+					description: 'How to generate the cache key',
+				},
+				{
 					displayName: 'Custom Cache Key',
-					name: 'customKey',
+					name: 'customCacheKey',
 					type: 'string',
 					default: '',
-					description: 'Custom string to include in cache key (optional)',
+					description: 'Custom string to use as cache key (only used when Cache Key Mode is "Custom String")',
+					displayOptions: {
+						show: {
+							cacheKeyMode: ['custom'],
+						},
+					},
+				},
+				{
+					displayName: 'Calculate MD5 Hash',
+					name: 'calculateMD5',
+					type: 'boolean',
+					default: true,
+					description: 'Whether to calculate MD5 hash of the custom cache key (only used when Cache Key Mode is "Custom String")',
+					displayOptions: {
+						show: {
+							cacheKeyMode: ['custom'],
+						},
+					},
+				},
+				{
+					displayName: 'Additional Parameters',
+					name: 'additionalParams',
+					type: 'string',
+					default: '',
+					description: 'Additional parameters to include in auto-generated cache key (optional)',
+					displayOptions: {
+						show: {
+							cacheKeyMode: ['auto'],
+						},
+					},
 				},
 			],
 		},
@@ -224,7 +288,8 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 		const videoFormat = this.getNodeParameter('videoFormat', index) as string;
 		const enableCache = this.getNodeParameter('enableCache', index) as boolean;
 		const cacheDir = enableCache ? (this.getNodeParameter('cacheDir', index) as string) : './cache/video';
-		const cacheParams = this.getNodeParameter('cacheParams', index, {}) as IDataObject;
+		const cacheKeySettings = this.getNodeParameter('cacheKeySettings', index, {}) as IDataObject;
+		const outputFilePath = this.getNodeParameter('outputFilePath', index) as string;
 
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
@@ -238,18 +303,53 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		// Generate MD5 for caching
-		const additionalParams = {
-			outputFormat,
-			videoFormat,
-			...(cacheParams.customKey && { customKey: cacheParams.customKey })
-		};
-		const md5Hash = generateMD5(taskId, additionalParams);
+		// Generate cache key based on settings
+		let cacheKey: string;
+		const cacheKeyMode = cacheKeySettings.cacheKeyMode || 'auto';
+
+		if (cacheKeyMode === 'custom') {
+			const customCacheKey = cacheKeySettings.customCacheKey as string;
+			if (!customCacheKey || customCacheKey.trim() === '') {
+				throw new Error('Custom cache key is required when Cache Key Mode is set to "Custom String"');
+			}
+
+			const calculateMD5 = cacheKeySettings.calculateMD5 !== false; // Default to true
+			if (calculateMD5) {
+				cacheKey = crypto.createHash('md5').update(customCacheKey).digest('hex');
+				this.logger.info('Generated cache key from custom string with MD5', {
+					customKey: customCacheKey,
+					cacheKey: cacheKey
+				});
+			} else {
+				cacheKey = customCacheKey;
+				this.logger.info('Using custom cache key directly', {
+					cacheKey: cacheKey
+				});
+			}
+		} else {
+			// Auto mode - generate based on task ID and parameters
+			const additionalParams = {
+				outputFormat,
+				videoFormat,
+				...(cacheKeySettings.additionalParams && { additionalParams: cacheKeySettings.additionalParams })
+			};
+			cacheKey = generateMD5(taskId, additionalParams);
+			this.logger.info('Generated cache key automatically', {
+				taskId: taskId,
+				additionalParams: additionalParams,
+				cacheKey: cacheKey
+			});
+		}
 
 		// Check cache if enabled and not URL only format
 		if (enableCache && outputFormat !== 'url') {
-			ensureCacheDir(cacheDir);
-			const cachedFilePath = getCachedFilePath(md5Hash, videoFormat, cacheDir);
+			// Convert cache directory to absolute path
+			const absoluteCacheDir = path.isAbsolute(cacheDir)
+				? cacheDir
+				: path.resolve(process.cwd(), cacheDir);
+
+			ensureCacheDir(absoluteCacheDir);
+			const cachedFilePath = getCachedFilePath(cacheKey, videoFormat, absoluteCacheDir);
 
 			if (fs.existsSync(cachedFilePath)) {
 				this.logger.info('Using cached video file', { filePath: cachedFilePath });
@@ -264,7 +364,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 					cacheFilePath: cachedFilePath,
 				};
 
-				return processVideoOutput(result, cachedVideoData, outputFormat, videoFormat, index, this);
+				return processVideoOutput(result, cachedVideoData, outputFormat, videoFormat, index, this, outputFilePath);
 			}
 		}
 
@@ -321,10 +421,19 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 
 			// Save to cache if enabled
 			if (enableCache && videoBuffer.length > 0) {
-				ensureCacheDir(cacheDir);
-				const cachedFilePath = getCachedFilePath(md5Hash, videoFormat, cacheDir);
+				// Convert cache directory to absolute path
+				const absoluteCacheDir = path.isAbsolute(cacheDir)
+					? cacheDir
+					: path.resolve(process.cwd(), cacheDir);
+
+				ensureCacheDir(absoluteCacheDir);
+				const cachedFilePath = getCachedFilePath(cacheKey, videoFormat, absoluteCacheDir);
 				fs.writeFileSync(cachedFilePath, videoBuffer);
-				this.logger.info('Video saved to cache', { filePath: cachedFilePath });
+				this.logger.info('Video saved to cache', {
+					filePath: cachedFilePath,
+					fileSize: videoBuffer.length,
+					cacheDir: absoluteCacheDir
+				});
 			}
 
 			const result: IDataObject = {
@@ -339,7 +448,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			};
 
 			// Process output based on format
-			return processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this);
+			return processVideoOutput(result, videoBuffer, outputFormat, videoFormat, index, this, outputFilePath);
 
 		} catch (error: any) {
 			// Enhanced error handling with more context
