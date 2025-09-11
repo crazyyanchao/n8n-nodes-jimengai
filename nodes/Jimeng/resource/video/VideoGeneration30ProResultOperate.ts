@@ -388,8 +388,8 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 				throw new Error(`API request failed with code ${data.code}: ${data.message || 'Unknown error'}`);
 			}
 
-			// Check task status
-			const status = data.data?.status;
+			// Check task status - handle both direct status and nested data.status
+			const status = data.status || data.data?.status;
 			if (status === 'not_found') {
 				throw new Error(`Task not found: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours). Please check the task ID and try again.`);
 			}
@@ -399,18 +399,19 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 			}
 
 			// If task is not completed yet, return status without video data
-			if (status !== 'completed' && status !== 'success') {
+			if (status !== 'completed' && status !== 'success' && status !== 'done') {
 				return {
 					taskId: taskId,
 					status: status || 'unknown',
 					message: data.message,
-					requestId: data.request_id,
+					requestId: data.requestId || data.request_id,
 					code: data.code,
-					videoUrl: data.data?.video_url,
+					videoUrl: data.videoUrl || data.data?.video_url,
 				};
 			}
 
-			const videoUrl = data.data?.video_url;
+			// Handle both direct videoUrl and nested data.video_url
+			const videoUrl = data.videoUrl || data.data?.video_url;
 			if (!videoUrl) {
 				throw new Error('Video URL not found in the response. The task may not be completed yet.');
 			}
@@ -422,7 +423,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 					status: status || 'completed',
 					videoUrl: videoUrl,
 					message: data.message,
-					requestId: data.request_id,
+					requestId: data.requestId || data.request_id,
 					code: data.code,
 				};
 			}
@@ -453,7 +454,7 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 				status: status || 'completed',
 				videoUrl: videoUrl,
 				message: data.message,
-				requestId: data.request_id,
+				requestId: data.requestId || data.request_id,
 				code: data.code,
 				videoSize: videoBuffer.length,
 				cached: false,

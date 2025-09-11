@@ -233,15 +233,19 @@ export interface VideoResponse {
 
 export interface AsyncVideoResponse {
 	code: number;
-	data: {
+	data?: {
 		task_id?: string;
 		status?: string;
 		video_url?: string;
 	};
 	message: string;
-	request_id: string;
-	status: number;
-	time_elapsed: string;
+	request_id?: string;
+	requestId?: string;
+	status?: number;
+	time_elapsed?: string;
+	// Direct fields that may be present in some API responses
+	taskId?: string;
+	videoUrl?: string;
 }
 
 export class JimengApiClient {
