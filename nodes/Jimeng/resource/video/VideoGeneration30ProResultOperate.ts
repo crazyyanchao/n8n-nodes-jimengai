@@ -285,11 +285,23 @@ const GetVideoGeneration30ProResultOperate: ResourceOperations = {
 		// Get all required parameters
 		const taskId = this.getNodeParameter('taskId', index) as string;
 		const outputFormat = this.getNodeParameter('outputFormat', index) as string;
-		const videoFormat = this.getNodeParameter('videoFormat', index) as string;
 		const enableCache = this.getNodeParameter('enableCache', index) as boolean;
-		const cacheDir = enableCache ? (this.getNodeParameter('cacheDir', index) as string) : './cache/video';
 		const cacheKeySettings = this.getNodeParameter('cacheKeySettings', index, {}) as IDataObject;
-		const outputFilePath = this.getNodeParameter('outputFilePath', index) as string;
+
+		// Only get videoFormat when outputFormat is 'binary' or 'file'
+		let videoFormat: string = 'mp4'; // default value
+		if (outputFormat === 'binary' || outputFormat === 'file') {
+			videoFormat = this.getNodeParameter('videoFormat', index) as string;
+		}
+
+		// Only get cacheDir when enableCache is true
+		const cacheDir = enableCache ? (this.getNodeParameter('cacheDir', index) as string) : './cache/video';
+
+		// Only get outputFilePath when outputFormat is 'file'
+		let outputFilePath: string | undefined;
+		if (outputFormat === 'file') {
+			outputFilePath = this.getNodeParameter('outputFilePath', index) as string;
+		}
 
 		const credentials = await this.getCredentials('jimengCredentialsApi');
 
