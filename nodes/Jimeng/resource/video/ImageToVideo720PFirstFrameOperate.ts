@@ -74,17 +74,10 @@ const ImageToVideo720PFirstFrameOperate: ResourceOperations = {
 	],
 	async call(this: IExecuteFunctions, index: number): Promise<IDataObject> {
 		const prompt = this.getNodeParameter('prompt', index) as string;
-		let imageUrl = this.getNodeParameter('imageUrl', index) as string;
+		const imageInputType = this.getNodeParameter('imageInputType', index) as string;
 		const frames = this.getNodeParameter('frames', index) as number;
 		const seed = this.getNodeParameter('seed', index) as number;
 		const credentials = await this.getCredentials('jimengCredentialsApi');
-
-		// Handle file upload if needed
-		const linkType = checkLinkType(imageUrl);
-		if (linkType === 'string') {
-			const result = await buildUploadFileData.call(this, imageUrl);
-			imageUrl = result.value;
-		}
 
 		const client = new JimengApiClient({
 			accessKeyId: credentials.accessKeyId as string,
@@ -92,13 +85,30 @@ const ImageToVideo720PFirstFrameOperate: ResourceOperations = {
 			region: credentials.region as string,
 		});
 
-		// Submit task
-		const submitData = await client.imageToVideo720PFirstFrame({
+		let requestData: any = {
 			prompt,
-			image_url: imageUrl,
 			frames,
 			seed: seed === -1 ? undefined : seed,
-		});
+		};
+
+		if (imageInputType === 'url') {
+			let imageUrl = this.getNodeParameter('imageUrl', index) as string;
+
+			// Handle file upload if needed
+			const linkType = checkLinkType(imageUrl);
+			if (linkType === 'string') {
+				const result = await buildUploadFileData.call(this, imageUrl);
+				imageUrl = result.value;
+			}
+
+			requestData.image_url = imageUrl;
+		} else {
+			const imageBase64 = this.getNodeParameter('imageBase64', index) as string;
+			requestData.binary_data_base64 = imageBase64;
+		}
+
+		// Submit task
+		const submitData = await client.imageToVideo720PFirstFrame(requestData);
 
 		if (submitData.code !== 10000 || !submitData.data?.task_id) {
 			throw new Error(`Task submission failed: ${submitData.message}`);
