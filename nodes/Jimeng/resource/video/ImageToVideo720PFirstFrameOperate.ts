@@ -17,11 +17,40 @@ const ImageToVideo720PFirstFrameOperate: ResourceOperations = {
 			required: true,
 		},
 		{
+			displayName: 'Image Input Type',
+			name: 'imageInputType',
+			type: 'options',
+			default: 'url',
+			options: [
+				{ name: 'Image URL', value: 'url' },
+				{ name: 'Base64 Data', value: 'base64' },
+			],
+			description: 'Choose how to provide the image',
+		},
+		{
 			displayName: 'Image URL',
 			name: 'imageUrl',
 			type: 'string',
 			default: '',
 			description: 'URL or path to the input image (JPEG/PNG format, max 4.7MB, max 4096x4096)',
+			displayOptions: {
+				show: {
+					imageInputType: ['url'],
+				},
+			},
+			required: true,
+		},
+		{
+			displayName: 'Image Base64',
+			name: 'imageBase64',
+			type: 'string',
+			default: '',
+			description: 'Base64 encoded image data (JPEG/PNG format, max 4.7MB, max 4096x4096)',
+			displayOptions: {
+				show: {
+					imageInputType: ['base64'],
+				},
+			},
 			required: true,
 		},
 		{
