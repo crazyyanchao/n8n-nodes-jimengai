@@ -104,7 +104,7 @@ const ImageToVideo720PFirstFrameOperate: ResourceOperations = {
 			requestData.image_url = imageUrl;
 		} else {
 			const imageBase64 = this.getNodeParameter('imageBase64', index) as string;
-			requestData.binary_data_base64 = imageBase64;
+			requestData.binary_data_base64 = [imageBase64];
 		}
 
 		// Submit task

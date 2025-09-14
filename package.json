@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-jimengai",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "description": "n8n custom node for Jimeng AI image and video generation",
   "keywords": [
     "n8n-community-node-package",
