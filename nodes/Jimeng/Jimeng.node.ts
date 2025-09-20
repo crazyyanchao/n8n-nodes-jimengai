@@ -35,7 +35,7 @@ import { ResourceOperations } from '../help/type/IResource';
 const resourceBuilder = new ResourceBuilder();
 ModuleLoadUtils.loadModules(__dirname, 'resource/*.js').forEach((resource) => {
 	resourceBuilder.addResource(resource);
-	ModuleLoadUtils.loadModules(__dirname, `resource/${resource.value}/*.js`).forEach((operate: ResourceOperations) => {
+	ModuleLoadUtils.loadModules(__dirname, `resource/${resource.value}/**/*.js`).forEach((operate: ResourceOperations) => {
 		resourceBuilder.addOperate(resource.value, operate);
 	})
 });
