@@ -170,6 +170,46 @@ export interface ActionImitationRequest {
 	image_url: string;
 }
 
+export interface HumanSubjectDetectionRequest {
+	image_url: string;
+}
+
+export interface HumanSubjectDetectionResponse {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		resp_data?: string;
+	};
+	message: string;
+	request_id?: string;
+	requestId?: string;
+	status?: number;
+	time_elapsed?: string;
+}
+
+export interface DigitalHumanVideoGenerationRequest {
+	image_url: string;
+	audio_url: string;
+}
+
+export interface DigitalHumanVideoGenerationResponse {
+	code: number;
+	data?: {
+		task_id?: string;
+		status?: string;
+		video_url?: string;
+	};
+	message: string;
+	request_id?: string;
+	requestId?: string;
+	status?: number;
+	time_elapsed?: string;
+	// Direct fields that may be present in some API responses
+	taskId?: string;
+	videoUrl?: string;
+}
+
 export interface ImageResponse {
 	ResponseMetadata: {
 		RequestId: string;
@@ -902,6 +942,121 @@ export class JimengApiClient {
 				Error: queryResponse.data?.error,
 			},
 		};
+	}
+
+	// Human Subject Detection APIs
+	async submitHumanSubjectDetectionTask(request: HumanSubjectDetectionRequest): Promise<{ task_id: string; code: number; message: string }> {
+		const submitResponse = await this.makeRequest('CVSubmitTask', {
+			req_key: 'jimeng_realman_avatar_picture_create_role_omni',
+			image_url: request.image_url,
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Human subject detection task submission failed: ${submitResponse.message}`);
+		}
+
+		return {
+			task_id: submitResponse.data.task_id,
+			code: submitResponse.code,
+			message: submitResponse.message,
+		};
+	}
+
+	async getHumanSubjectDetectionResult(taskId: string): Promise<HumanSubjectDetectionResponse> {
+		try {
+			const response = await this.makeRequest('CVGetResult', {
+				req_key: 'jimeng_realman_avatar_picture_create_role_omni',
+				task_id: taskId,
+			});
+
+			// Additional validation for the response
+			if (!response) {
+				throw new Error(`Empty response received for task ${taskId}`);
+			}
+
+			// Log the response for debugging (in development)
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Human Subject Detection Result Response:', JSON.stringify(response, null, 2));
+			}
+
+			return response;
+		} catch (error: any) {
+			// Enhanced error handling with more specific messages
+			if (error.message.includes('Server internal error') || error.message.includes('Internal Error')) {
+				throw new Error(`Server internal error, please try again later`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			if (error.message.includes('QPS limit exceeded')) {
+				throw new Error(`Request rate limit exceeded. Please wait a moment and try again.`);
+			}
+			if (error.message.includes('Concurrency limit exceeded')) {
+				throw new Error(`Concurrent request limit exceeded. Please wait a moment and try again.`);
+			}
+			throw error;
+		}
+	}
+
+	// Digital Human Video Generation APIs
+	async submitDigitalHumanVideoGenerationTask(request: DigitalHumanVideoGenerationRequest): Promise<{ task_id: string; code: number; message: string }> {
+		const submitResponse = await this.makeRequest('CVSubmitTask', {
+			req_key: 'jimeng_realman_avatar_picture_omni_v2',
+			image_url: request.image_url,
+			audio_url: request.audio_url,
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Digital Human Video Generation task submission failed: ${submitResponse.message}`);
+		}
+
+		return {
+			task_id: submitResponse.data.task_id,
+			code: submitResponse.code,
+			message: submitResponse.message,
+		};
+	}
+
+	async getDigitalHumanVideoGenerationResult(taskId: string): Promise<DigitalHumanVideoGenerationResponse> {
+		try {
+			const response = await this.makeRequest('CVGetResult', {
+				req_key: 'jimeng_realman_avatar_picture_omni_v2',
+				task_id: taskId,
+			});
+
+			// Additional validation for the response
+			if (!response) {
+				throw new Error(`Empty response received for task ${taskId}`);
+			}
+
+			// Log the response for debugging (in development)
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Digital Human Video Generation Result Response:', JSON.stringify(response, null, 2));
+			}
+
+			return response;
+		} catch (error: any) {
+			// Enhanced error handling with more specific messages
+			if (error.message.includes('Server internal error') || error.message.includes('Internal Error')) {
+				throw new Error(`Server internal error, please try again later`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			if (error.message.includes('QPS limit exceeded')) {
+				throw new Error(`Request rate limit exceeded. Please wait a moment and try again.`);
+			}
+			if (error.message.includes('Concurrency limit exceeded')) {
+				throw new Error(`Concurrent request limit exceeded. Please wait a moment and try again.`);
+			}
+			throw error;
+		}
 	}
 
 	private async makeRequest(action: string, body: any): Promise<any> {
