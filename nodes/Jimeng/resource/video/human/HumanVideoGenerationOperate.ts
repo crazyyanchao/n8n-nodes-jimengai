@@ -5,14 +5,14 @@ import { JimengApiClient } from '../../../utils/JimengApiClient';
 const HumanVideoGenerationOperate: ResourceOperations = {
 	name: 'Human Video Generation',
 	value: 'humanVideoGeneration',
-	description: 'Generate digital human video using image and audio (Step 2 of Digital Human Quick Mode)',
+	description: 'Generate digital human video using image and audio (Step 2 of Digital Human Quick Mode). Output: MP4 video format. Note: RTF30 service may have increased processing time during high load periods.',
 	options: [
 		{
 			displayName: 'Image URL',
 			name: 'imageUrl',
 			type: 'string',
 			default: '',
-			description: 'URL of the input image (must be publicly accessible)',
+			description: 'URL of the input image (must be publicly accessible). Supported formats: JPG(JPEG), PNG, JFIF. Recommended: JPG format. Requirements: < 5MB, < 4096*4096 pixels. For best results: single person, large face proportion, front-facing image.',
 			required: true,
 		},
 		{
@@ -20,7 +20,7 @@ const HumanVideoGenerationOperate: ResourceOperations = {
 			name: 'audioUrl',
 			type: 'string',
 			default: '',
-			description: 'URL of the input audio (must be publicly accessible)',
+			description: 'URL of the input audio (must be publicly accessible). Recommended duration: < 15 seconds for optimal generation quality. Longer audio may result in quality degradation.（MP3 has been tested and there are no issues.）',
 			required: true,
 		},
 	],
