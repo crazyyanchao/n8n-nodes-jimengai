@@ -30,7 +30,7 @@ const ImageGeneration40Operate: ResourceOperations = {
 							name: 'url',
 							type: 'string',
 							default: '',
-							description: 'URL or Data URL of the input image (supports up to 10 images), Array or JSON String',
+							description: 'URL or Data URL of the input image (supports up to 10 images), Array or JSON String or Base64 String',
 						},
 					],
 				},
