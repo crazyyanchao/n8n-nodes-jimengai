@@ -68,6 +68,19 @@ export interface TextToImage31Request {
 	aigc_meta?: AIGCMeta;
 }
 
+export interface ImageGeneration40Request {
+	prompt: string;
+	image_urls?: string[];
+	size?: number;
+	width?: number;
+	height?: number;
+	scale?: number;
+	force_single?: boolean;
+	min_ratio?: number;
+	max_ratio?: number;
+	seed?: number;
+}
+
 export interface LogoInfo {
 	add_logo?: boolean;
 	position?: number;
@@ -142,6 +155,20 @@ export interface TextToImage31Response {
 	request_id: string;
 	status: number;
 	time_elapsed: string;
+}
+
+export interface ImageGeneration40Response {
+	code: number;
+	data: {
+		task_id?: string;
+		status?: string;
+		binary_data_base64?: string[];
+		image_urls?: string[];
+	};
+	message: string;
+	request_id: string;
+	status: number;
+	time_elapsed?: string;
 }
 
 export interface VideoGenerationRequest {
@@ -505,6 +532,69 @@ export class JimengApiClient {
 			}
 			if (error.message.includes('Task has expired')) {
 				throw new Error(`Failed to get Text to Image 3.1 result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
+			}
+			throw error;
+		}
+	}
+
+	async imageGeneration40(request: ImageGeneration40Request): Promise<ImageGeneration40Response> {
+		// Submit task
+		const submitResponse = await this.makeRequest('CVSync2AsyncSubmitTask', {
+			req_key: 'jimeng_t2i_v40',
+			prompt: request.prompt,
+			image_urls: request.image_urls,
+			size: request.size,
+			width: request.width,
+			height: request.height,
+			scale: request.scale,
+			force_single: request.force_single,
+			min_ratio: request.min_ratio,
+			max_ratio: request.max_ratio,
+			seed: request.seed,
+		});
+
+		if (submitResponse.code !== 10000 || !submitResponse.data?.task_id) {
+			throw new Error(`Image Generation 4.0 task submission failed: ${submitResponse.message}`);
+		}
+
+		// Return the submission response with task_id
+		return submitResponse;
+	}
+
+	async getImageGeneration40Result(taskId: string, options?: {
+		return_url?: boolean;
+		logo_info?: LogoInfo;
+	}): Promise<ImageGeneration40Response> {
+		try {
+			// Build query parameters
+			const reqJson: any = {};
+
+			if (options?.return_url !== undefined) {
+				reqJson.return_url = options.return_url;
+			}
+
+			if (options?.logo_info) {
+				reqJson.logo_info = options.logo_info;
+			}
+
+			// Query task result
+			const queryResponse = await this.makeRequest('CVSync2AsyncGetResult', {
+				req_key: 'jimeng_t2i_v40',
+				task_id: taskId,
+				req_json: Object.keys(reqJson).length > 0 ? JSON.stringify(reqJson) : undefined,
+			});
+
+			return queryResponse;
+		} catch (error: any) {
+			// Provide more detailed error information
+			if (error.message.includes('Server internal error') || error.message.includes('Internal Error')) {
+				throw new Error(`Server internal error, please try again later`);
+			}
+			if (error.message.includes('Task not found')) {
+				throw new Error(`Failed to get Image Generation 4.0 result: Task not found - Task ID: ${taskId}. Possible reasons: invalid task ID or task has expired (12 hours).`);
+			}
+			if (error.message.includes('Task has expired')) {
+				throw new Error(`Failed to get Image Generation 4.0 result: Task has expired - Task ID: ${taskId}. Please try resubmitting the task request.`);
 			}
 			throw error;
 		}
