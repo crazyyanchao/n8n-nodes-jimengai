@@ -31,12 +31,14 @@
 2. Drag "Jimeng" node into the editor.
 
 3. Select resource type:
-   - **Image**: Image generation (Text-to-Image 2.1/3.0/3.1, Image-to-Image 3.0)
-   - **Video**: Video generation (Text-to-Video, Image-to-Video, Action Imitation, etc.)
+   - **Image**: Image generation (Text-to-Image 2.1/3.0/3.1/4.0, Image-to-Image 3.0)
+   - **Video**: Video generation (Text-to-Video, Image-to-Video, Action Imitation, Digital Human Video, etc.)
 
 4. Select specific operation:
-   - Image generation: Text-to-Image 2.1, Text-to-Image 3.0, Text-to-Image 3.1, Image-to-Image 3.0
-   - Video generation: Text-to-Video 720P/1080P, Image-to-Video 720P/1080P, Action Imitation, etc.
+   - Image generation: Text-to-Image 2.1, Text-to-Image 3.0, Text-to-Image 3.1, Text-to-Image 4.0, Image-to-Image 3.0, various result queries
+   - Video generation: Text-to-Video 720P/1080P, Image-to-Video 720P/1080P, Action Imitation, Video Generation 3.0 Pro, Digital Human Video Generation, etc.
+   - Digital Human features: Human Subject Detection, Digital Human Video Generation, Digital Human Result Query, etc.
+   - Status queries: Various image result queries, video result queries, digital human result queries, etc.
 
 5. Configure authentication information:
    - AccessKeyID
@@ -48,9 +50,9 @@
 6. Fill in parameters and start generating.
 
 7. **Async Task Processing**:
-   - For async interfaces (Text-to-Image 3.0/3.1, all video generation), task ID will be returned
+   - For async interfaces (Text-to-Image 3.0/3.1/4.0, all video generation, digital human features), task ID will be returned
    - Use corresponding status query interfaces to periodically check task status
-   - Retrieve generated images or videos when tasks are completed
+   - Retrieve generated images, videos, or digital human content when tasks are completed
 
 8. Can be combined with other nodes (such as: OpenAI, Notion, Telegram, Drive, etc.) to build complete automation workflows.
 
@@ -60,13 +62,25 @@
 - **Text-to-Image 2.1**: Generate high-quality images from text descriptions (synchronous)
 - **Text-to-Image 3.0**: Use Jimeng 3.0 model for text-to-image generation (asynchronous)
 - **Text-to-Image 3.1**: Use Jimeng 3.1 model for text-to-image generation (asynchronous)
+- **Text-to-Image 4.0**: Use Jimeng 4.0 model for advanced image generation with multi-image input support (asynchronous)
 - **Image-to-Image 3.0**: Generate new images based on existing images and text prompts (asynchronous)
-- **Result Query**: Text-to-Image 3.0 result query, Text-to-Image 3.1 result query, Image-to-Image 3.0 result query
-- **Multi-model Support**: jimeng-2.1, jimeng-3.0, jimeng-3.1
+- **Result Query**: Text-to-Image 3.0 result query, Text-to-Image 3.1 result query, Text-to-Image 4.0 result query, Image-to-Image 3.0 result query
+- **Multi-model Support**: jimeng-2.1, jimeng-3.0, jimeng-3.1, jimeng-4.0
 - **Flexible Dimensions**: Support multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
+- **Advanced Features**: Multi-image input, smart dimension settings, aspect ratio constraints, force single image generation
 - **Watermark Settings**: Support custom watermark text, position, transparency, etc.
 - **AIGC Metadata**: Support content producer, distributor and other metadata settings
 - **Async Processing**: Choose to wait for completion or process asynchronously
+
+### 🤖 Digital Human Features
+- **Human Subject Detection**: Detect whether images contain human subjects for digital human creation
+- **Digital Human Video Generation**: Generate digital human videos based on images and audio (MP4 format)
+- **Result Query**: Digital human video generation result query, human subject detection result query
+- **Multi-format Output**: Support Base64, binary data, file saving and other output formats
+- **Local Caching**: Support video file local caching for improved reuse efficiency
+- **Smart Detection**: Automatically detect human subjects in images to ensure digital human generation quality
+- **Audio Synchronization**: Support precise audio-video synchronization, recommended audio within 15 seconds
+- **Async Processing**: Support async task submission and status query
 
 ### 🎬 Video Generation
 - **Text-to-Video 720P**: Generate 720P videos from text descriptions
@@ -84,16 +98,18 @@
 
 ## Implemented API Interfaces
 
-### 📸 Image Generation Interfaces (7)
+### 📸 Image Generation Interfaces (9)
 | Interface Name | File Path | Model Version | Description | Test |
 |---------------|-----------|---------------|-------------|------|
 | Text-to-Image 2.1 | `TextToImageOperate.ts` | jimeng-2.1 | Generate high-quality images from text descriptions (synchronous) | Success |
 | Text-to-Image 3.0 | `TextToImage30Operate.ts` | jimeng-3.0 | Use 3.0 model for text-to-image generation (asynchronous) | Success |
 | Text-to-Image 3.1 | `TextToImage31Operate.ts` | jimeng-3.1 | Use 3.1 model for text-to-image generation (asynchronous) | Success |
+| Text-to-Image 4.0 | `ImageGeneration40Operate.ts` | jimeng-4.0 | Use 4.0 model for advanced image generation with multi-image input support (asynchronous) | Success |
 | Image-to-Image 3.0 | `ImageToImageOperate.ts` | jimeng-3.0 | Generate new images based on existing images and text prompts (asynchronous) | Success |
-| Text-to-Image 3.0 Result | `TextToImage30ResultOperate.ts` | - | Query text-to-image 3.0 task results | Failed |
-| Text-to-Image 3.1 Result | `TextToImage31ResultOperate.ts` | - | Query text-to-image 3.1 task results | Failed |
-| Image-to-Image 3.0 Result | `ImageToImage30ResultOperate.ts` | - | Query image-to-image 3.0 task results | Failed |
+| Text-to-Image 3.0 Result | `TextToImage30ResultOperate.ts` | - | Query text-to-image 3.0 task results | Success |
+| Text-to-Image 3.1 Result | `TextToImage31ResultOperate.ts` | - | Query text-to-image 3.1 task results | Success |
+| Text-to-Image 4.0 Result | `ImageGeneration40ResultOperate.ts` | - | Query text-to-image 4.0 task results | Success |
+| Image-to-Image 3.0 Result | `ImageToImage30ResultOperate.ts` | - | Query image-to-image 3.0 task results | Success |
 
 ### 🎬 Video Generation Interfaces (18)
 | Interface Name | File Path | Model Version | Description | Test |
@@ -117,6 +133,14 @@
 | Video Generation 3.0 Pro Result | `VideoGeneration30ProResultOperate.ts` | - | Query video generation 3.0 Pro task results | Success |
 | Action Imitation Result | `ActionImitationResultOperate.ts` | - | Query action imitation task results | Success |
 
+### 🤖 Digital Human Feature Interfaces (4)
+| Interface Name | File Path | Model Version | Description | Test |
+|---------------|-----------|---------------|-------------|------|
+| Human Subject Detection | `HumanSubjectDetectionOperate.ts` | - | Detect whether images contain human subjects | Success |
+| Human Subject Detection Result | `HumanSubjectDetectionResultOperate.ts` | - | Query human subject detection task results | Success |
+| Digital Human Video Generation | `HumanVideoGenerationOperate.ts` | digital-human | Generate digital human videos based on images and audio | Success |
+| Digital Human Video Generation Result | `HumanVideoGenerationResultOperate.ts` | - | Query digital human video generation task results | Success |
+
 ## Feature Overview
 
 ### 🎯 Core Operations
@@ -125,9 +149,11 @@
 | **Image Generation** | Text-to-Image 2.1 | Generate images from text descriptions (synchronous) | jimeng-2.1 |
 | | Text-to-Image 3.0 | Use 3.0 model for text-to-image generation (asynchronous) | jimeng-3.0 |
 | | Text-to-Image 3.1 | Use 3.1 model for text-to-image generation (asynchronous) | jimeng-3.1 |
+| | Text-to-Image 4.0 | Use 4.0 model for advanced image generation (asynchronous) | jimeng-4.0 |
 | | Image-to-Image 3.0 | Generate new images from existing images and text prompts (asynchronous) | jimeng-3.0 |
 | | Text-to-Image 3.0 Result | Query text-to-image 3.0 task results | - |
 | | Text-to-Image 3.1 Result | Query text-to-image 3.1 task results | - |
+| | Text-to-Image 4.0 Result | Query text-to-image 4.0 task results | - |
 | | Image-to-Image 3.0 Result | Query image-to-image 3.0 task results | - |
 | **Video Generation** | Text-to-Video 720P | Generate 720P videos from text descriptions | video-3.0-720p |
 | | Text-to-Video 1080P | Generate 1080P videos from text descriptions | video-3.0-1080p |
@@ -138,19 +164,26 @@
 | | Image-to-Video 1080P-First Last Frame | Generate 1080P videos based on image first and last frames | video-3.0-1080p |
 | | Video Generation 3.0 Pro | Use Pro model to generate high-quality videos | Success | video-3.0-pro |
 | | Action Imitation | Generate videos based on reference video action imitation | Success | action-imitation |
+| **Digital Human Features** | Human Subject Detection | Detect whether images contain human subjects | - |
+| | Digital Human Video Generation | Generate digital human videos based on images and audio | digital-human |
+| | Human Subject Detection Result | Query human subject detection task results | - |
+| | Digital Human Video Generation Result | Query digital human video generation task results | - |
 | **Status Query** | Various Video Result Queries | Query various video generation task status and results | - |
 
 ### ⚙️ Parameter Configuration
 - **Image Dimensions**: Support custom width and height, multiple aspect ratios (21:9, 16:9, 3:2, 4:3, 1:1, 3:4, 2:3, 9:16)
+- **Advanced Image Settings**: Area settings, aspect ratio constraints, multi-image input (up to 10 images), force single image generation
 - **Video Duration**: 1-10 seconds adjustable (depending on model support)
 - **Video Resolution**: 720P, 1080P, custom resolution (Pro model)
 - **Image Style**: Anime, oil painting, realistic, sketch, watercolor, etc.
 - **Camera Motion**: Pan, tilt, zoom and other camera motion methods
-- **Generation Parameters**: Steps, guidance scale, random seed, etc.
+- **Generation Parameters**: Steps, guidance scale, random seed, text influence, etc.
 - **Watermark Settings**: Custom watermark text, position (four corners), transparency, language (Chinese/English)
 - **AIGC Metadata**: Content producer, distributor, unique identifier and other metadata configuration
+- **Digital Human Configuration**: Image URL, audio URL, output format, local caching settings
+- **File Output**: Support Base64, binary, file saving, caching and other output formats
 - **Generation Mode**: Synchronous wait or asynchronous processing
-- **Model Selection**: Multiple Jimeng AI models available
+- **Model Selection**: Multiple Jimeng AI models available (including jimeng-4.0, digital-human, etc.)
 
 ## Use Cases
 
@@ -159,6 +192,8 @@
 - **Marketing Material Creation**: Automated marketing image/video workflow creation
 - **Creative Content Production**: AIGC creative script + storyboard + video integrated solution
 - **E-commerce Applications**: Automatic product image generation (combined with product descriptions and parameters)
+- **Digital Human Applications**: Virtual anchors, educational videos, customer service robots, personalized broadcasts
+- **Multimedia Production**: Integrated content production pipeline for images, text, audio, and video
 
 ### 🔄 Workflow Integration
 - **Multi-platform Publishing**: Combined with Telegram, Discord and other nodes for automatic publishing
@@ -175,9 +210,10 @@
 - Suitable for quick generation needs, no waiting time required
 
 #### Asynchronous Interfaces (Require Status Query)
-- **Text-to-Image 3.0/3.1**: Returns task ID after submission, requires periodic status query
+- **Text-to-Image 3.0/3.1/4.0**: Returns task ID after submission, requires periodic status query
 - **Image-to-Image 3.0**: Returns task ID after submission, requires periodic status query
 - **All Video Generation Interfaces**: Returns task ID after submission, requires periodic result query
+- **Digital Human Feature Interfaces**: Human subject detection, digital human video generation are all asynchronous interfaces
 - Suitable for high-quality generation needs with longer processing time
 
 ### 📋 Async Processing Workflow

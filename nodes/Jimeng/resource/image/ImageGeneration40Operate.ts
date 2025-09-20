@@ -30,7 +30,7 @@ const ImageGeneration40Operate: ResourceOperations = {
 							name: 'url',
 							type: 'string',
 							default: '',
-							description: 'URL of the input image (supports up to 10 images)',
+							description: 'URL or Data URL of the input image (supports up to 10 images), Array or JSON String',
 						},
 					],
 				},
@@ -196,6 +196,23 @@ const ImageGeneration40Operate: ResourceOperations = {
 			imageUrls = imageUrlsData.images
 				.map((img: any) => img.url)
 				.filter((url: string) => url && url.trim() !== '');
+
+			if (imageUrls) {
+					if (Array.isArray(imageUrls[0])) {
+						imageUrls = imageUrls[0].map(item => typeof item === 'string' ? item.trim() : String(item).trim());
+					} else if (typeof imageUrls[0] === 'string') {
+						// 尝试将 imageInput 作为 JSON 字符串解析为数组，如果失败则直接赋值
+						let parsedImage: any;
+						try {
+							parsedImage = JSON.parse(imageUrls[0]);
+							if (Array.isArray(parsedImage)) {
+								imageUrls = parsedImage.map(item => typeof item === 'string' ? item.trim() : String(item).trim());
+							}
+						} catch (e) {
+							imageUrls = imageUrls;
+						}
+					}
+			}
 		}
 
 		// Process size settings
